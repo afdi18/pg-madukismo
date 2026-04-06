@@ -174,6 +174,9 @@ function buildPdfHtml(): string {
   const slotLabel = (key: string) => key.split('-')[0] // "06-07" → "06"
 
   const TOTAL_COLS = 2 + 9 + 9 + 9 + 1 // 30
+  const hourCols = '<col class="col-hour" />'.repeat(8)
+  const shiftCols = `${hourCols}<col class="col-avg" />`
+  const colgroupHtml = `<colgroup><col class="col-no" /><col class="col-param" />${shiftCols}${shiftCols}${shiftCols}<col class="col-total" /></colgroup>`
 
   const sectionHtml = (data.value?.stasiuns ?? [])
     .map((stasiun, idx) => {
@@ -201,6 +204,7 @@ function buildPdfHtml(): string {
       return `
         <section class="station-block">
           <table>
+            ${colgroupHtml}
             <thead>
               <tr>
                 <th colspan="${TOTAL_COLS}" class="station-title-cell">${stasiunLabel(idx)}. ${esc(stasiun.nama_stasiun)}</th>
@@ -262,6 +266,9 @@ function buildPdfHtml(): string {
       margin-top: 2px;
       color: #475569;
       font-size: 8px;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
     .report-divider {
       margin-top: 3px;
@@ -279,6 +286,11 @@ function buildPdfHtml(): string {
       page-break-inside: auto;
     }
     thead { display: table-header-group; }
+    col.col-no    { width: 3%; }
+    col.col-param { width: 25%; }
+    col.col-hour  { width: 2.45%; }
+    col.col-avg   { width: 2.8%; }
+    col.col-total { width: 3%; }
     thead th {
       background: #e2e8f0;
       color: #334155;
@@ -287,6 +299,12 @@ function buildPdfHtml(): string {
       border: 1px solid #cbd5e1;
       padding: 3px 2px;
       line-height: 1.2;
+    }
+    thead th.w-no,
+    thead th.w-param {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .station-title-cell {
       text-align: left;
@@ -368,16 +386,21 @@ function buildPdfHtml(): string {
       line-height: 1.02;
       display: block;
       margin-top: 1px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
     .satuan    { color: #6b7280; }
-    .w-no    { width: 9px; }
-    .w-param { width: 46mm; }
-    .w-hour  { width: 7.5mm; }
-    .w-avg   { width: 9mm; }
-    .w-total { width: 10mm; }
+    .w-no,
+    .w-param,
+    .w-hour,
+    .w-avg,
+    .w-total {
+      width: auto;
+      min-width: 0;
+    }
     .empty   { text-align: center; color: #6b7280; font-style: italic; }
     @media print {
       html, body {
@@ -385,6 +408,11 @@ function buildPdfHtml(): string {
         print-color-adjust: exact;
         color-adjust: exact;
       }
+      col.col-no    { width: 3% !important; }
+      col.col-param { width: 15% !important; }
+      col.col-hour  { width: 3% !important; }
+      col.col-avg   { width: 3% !important; }
+      col.col-total { width: 3% !important; }
       .header {
         position: fixed;
         top: 0;
@@ -457,7 +485,8 @@ function printPdf() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-6">
+  <!-- <div class="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-6"> -->
+    <div class="space-y-6">
     <div class="mobile-landscape-guard">
       <div class="mobile-landscape-card">
         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Gunakan mode landscape</p>
