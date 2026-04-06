@@ -1,0 +1,66 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Laravel
+/vendor/
+/node_modules/
+/public/hot
+/public/storage
+/storage/*.key
+/.env
+/.env.*.local
+
+# Ignore build outputs (Vite, Mix)
+/public/build/
+/build/
+public/mix-manifest.json
+/.vite
+
+# Composer
+composer.phar
+
+# Laravel storage & cache (keep .gitignore files)
+/storage/framework/*
+/storage/app/*
+/storage/logs/*
+!/storage/.gitignore
+/bootstrap/cache/*
+!/bootstrap/cache/.gitkeep
+
+# Runtime files
+.phpunit.result.cache
+.php-cs-fixer.cache
+.pintcache
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# IDEs and editors
+/.idea/
+/.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Vagrant and Homestead
+Homestead.yaml
+/.vagrant/
+
+# Env backups and local env files
+.env.backup
+.env.local
+.env.test
+
+# Logs
+/logs/
+/storage/logs/*.log
+
+# Misc
+phpstorm.meta.php
+
