@@ -219,11 +219,11 @@ function buildPdfHtml(): string {
               </tr>
               <tr>
                 ${pagiSlotKeys.map(k  => `<th class="w-hour hour-pagi">${slotLabel(k)}</th>`).join('')}
-                <th class="w-avg avg-hdr">Avg</th>
+                <th class="w-avg avg-hdr">Pagi</th>
                 ${siangSlotKeys.map(k => `<th class="w-hour hour-siang">${slotLabel(k)}</th>`).join('')}
-                <th class="w-avg avg-hdr">Avg</th>
+                <th class="w-avg avg-hdr">Siang</th>
                 ${malamSlotKeys.map(k => `<th class="w-hour hour-malam">${slotLabel(k)}</th>`).join('')}
-                <th class="w-avg avg-hdr">Avg</th>
+                <th class="w-avg avg-hdr">Malam</th>
               </tr>
             </thead>
             <tbody>
@@ -408,6 +408,23 @@ function buildPdfHtml(): string {
         print-color-adjust: exact;
         color-adjust: exact;
       }
+      table {
+        page-break-inside: auto;
+      }
+      thead {
+        display: table-header-group;
+      }
+      tbody tr,
+      thead tr,
+      tfoot tr {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+      }
+      td,
+      th {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
       col.col-no    { width: 3% !important; }
       col.col-param { width: 15% !important; }
       col.col-hour  { width: 3% !important; }
@@ -421,14 +438,15 @@ function buildPdfHtml(): string {
         margin: 0;
         z-index: 50;
         background: #ffffff;
-        padding-bottom: 0.5mm;
+        padding-bottom: 3mm;
       }
       .report-divider {
         margin-top: 2px;
       }
       .station-block:first-of-type {
-        margin-top: 0;
+        margin-top: 10mm;
       }
+
       thead th,
       .shift-pagi,
       .shift-siang,
