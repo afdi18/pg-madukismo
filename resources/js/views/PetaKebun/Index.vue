@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import {
   PlusIcon, SearchIcon,
   XIcon, EditIcon, Trash2Icon,
@@ -266,10 +267,26 @@ function flyToKebun(kebun: any) {
 // ================================================================
 // HAPUS KEBUN
 // ================================================================
+const showDeleteConfirm = ref(false)
+const kebunToDelete = ref<any | null>(null)
+
+function askDeleteKebun(kebun: any) {
+  kebunToDelete.value = kebun
+  showDeleteConfirm.value = true
+}
+
 async function deleteKebun(kebun: any) {
-  if (!confirm(`Hapus kebun "${kebun.nama_kebun}"?`)) return
-  await axios.delete(`/api/peta-kebun/${kebun.id}`)
+  // kept for backward compatibility if called directly
+  kebunToDelete.value = kebun
+  await deleteKebunConfirmed()
+}
+
+async function deleteKebunConfirmed() {
+  if (!kebunToDelete.value) return
+  await axios.delete(`/api/peta-kebun/${kebunToDelete.value.id}`)
   selected.value = null
+  kebunToDelete.value = null
+  showDeleteConfirm.value = false
   await loadData()
 }
 
@@ -467,7 +484,7 @@ onUnmounted(() => {
                 </button>
                 <button
                   v-if="authStore.can('peta_kebun.delete')"
-                  @click="deleteKebun(selected)"
+                  @click.prevent="askDeleteKebun(selected)"
                   class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 >
                   <Trash2Icon class="w-4 h-4" />
@@ -497,6 +514,8 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
+
+<ConfirmDialog v-model="showDeleteConfirm" :message="kebunToDelete ? 'Hapus kebun ' + kebunToDelete.nama_kebun + '?' : ''" @confirm="deleteKebunConfirmed" />
 
 <style scoped>
 .slide-up-enter-active, .slide-up-leave-active { transition: all 0.25s ease; }

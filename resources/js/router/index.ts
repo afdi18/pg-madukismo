@@ -36,11 +36,12 @@ const router = createRouter({
                     },
                 },
                 {
-                    path: 'dashboard/penerimaan-tebu',
+                    path: 'dashboard/informasi-tebu',
+                    alias: 'dashboard/penerimaan-tebu',
                     name: 'DashboardPenerimaanTebu',
                     component: () => import('@/views/Dashboard/Index.vue'),
                     meta: {
-                        title: 'Dashboard Penerimaan Tebu',
+                        title: 'Dashboard Informasi Tebu',
                         permission: 'dashboard.view',
                     },
                 },
@@ -104,6 +105,58 @@ const router = createRouter({
                     meta: {
                         title: 'Lab QA — Pabrik Alkohol',
                         permission: 'lab_qa.view',
+                    },
+                },
+
+                // Penerimaan Tebu (nested)
+                {
+                    path: 'penerimaan',
+                    name: 'Penerimaan',
+                    component: () => import('@/views/Penerimaan/Index.vue'),
+                    meta: { title: 'Penerimaan Tebu', permission: 'penerimaan.view' },
+                    children: [
+                        {
+                            path: '',
+                            redirect: { name: 'PenerimaanManajemenSpa' },
+                        },
+                        {
+                            path: 'manajemen-spa',
+                            name: 'PenerimaanManajemenSpa',
+                            component: () => import('@/views/Penerimaan/ManajemenSPA/Index.vue'),
+                            meta: {
+                                title: 'Manajemen SPA',
+                                permission: 'penerimaan.view',
+                            },
+                        },
+                        {
+                            path: 'monitoring-antrian',
+                            name: 'PenerimaanMonitoringAntrian',
+                            component: () => import('@/views/Penerimaan/MonitoringAntrian/Index.vue'),
+                            meta: {
+                                title: 'Monitoring Antrian',
+                                permission: 'penerimaan.view',
+                            },
+                        },
+                        {
+                            path: 'data-pemasukan',
+                            name: 'PenerimaanDataPemasukan',
+                            component: () => import('@/views/Penerimaan/DataPemasukan/Index.vue'),
+                            meta: {
+                                title: 'Data Pemasukan',
+                                permission: 'penerimaan.view',
+                            },
+                        },
+                    ],
+                },
+
+                // Operasional Pabrik
+                {
+                    path: 'operasional/data-digiling',
+                    name: 'OperasionalDataDigiling',
+                    component: () => import('@/views/Operasional/DataDigiling.vue'),
+                    meta: {
+                        title: 'Data Digiling',
+                        permission: 'operasional.view',
                     },
                 },
 

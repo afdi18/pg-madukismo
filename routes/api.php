@@ -67,6 +67,36 @@ Route::middleware(['auth:sanctum'])->group(function () {
              ->middleware(AbacMiddleware::class . ':tanaman.delete');
     });
 
+     // ============================================================
+     // PENERIMAAN (SQL Server - TBL_MASTSPA)
+     // ============================================================
+     Route::prefix('penerimaan')->group(function () {
+          Route::get('/', [\App\Http\Controllers\Api\PenerimaanController::class, 'index'])
+                ->middleware(AbacMiddleware::class . ':penerimaan.view');
+     });
+
+     // ============================================================
+     // EPOS DEVICE MANAGEMENT (SQL Server - TBL_DEVICE_EPOS, TBL_POS_PANTAU)
+     // ============================================================
+     Route::prefix('epos')->group(function () {
+          Route::get('/devices', [\App\Http\Controllers\Api\EposController::class, 'devices'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.view');
+          Route::get('/pos', [\App\Http\Controllers\Api\EposController::class, 'posList'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.view');
+          Route::post('/pos', [\App\Http\Controllers\Api\EposController::class, 'storePos'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.view');
+          Route::put('/pos/{idPos}', [\App\Http\Controllers\Api\EposController::class, 'updatePos'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.view');
+          Route::put('/devices/{idDevice}/active', [\App\Http\Controllers\Api\EposController::class, 'setActive'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.view');
+          Route::put('/devices/{idDevice}', [\App\Http\Controllers\Api\EposController::class, 'updateDevice'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.view');
+          Route::get('/settings', [\App\Http\Controllers\Api\EposController::class, 'settings'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.view');
+          Route::post('/settings', [\App\Http\Controllers\Api\EposController::class, 'saveSettings'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.update');
+     });
+
     // ============================================================
     // PETA KEBUN (PostgreSQL)
     // ============================================================

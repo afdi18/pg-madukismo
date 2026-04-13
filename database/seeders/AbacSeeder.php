@@ -115,19 +115,26 @@ class AbacSeeder extends Seeder
             // ============================================================
             // 4. CREATE USER ADMINISTRATOR PERTAMA
             // ============================================================
-            $adminId = DB::connection('pgsql')->table('users')->insertGetId([
-                'username'   => 'admin',
-                'name'       => 'Administrator Sistem',
-                'email'      => 'admin@madukismo.co.id',
-                'password'   => Hash::make('Admin@Madukismo2024'),
-                'is_active'  => true,
-                'jabatan'    => 'System Administrator',
-                'divisi'     => 'IT',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            // CREATE OR GET EXISTING ADMIN USER
+            $existingAdmin = DB::connection('pgsql')->table('users')->where('username', 'admin')->first();
 
-            // Assign role Administrator ke admin
+            if ($existingAdmin) {
+                $adminId = $existingAdmin->id;
+            } else {
+                $adminId = DB::connection('pgsql')->table('users')->insertGetId([
+                    'username'   => 'admin',
+                    'name'       => 'Administrator Sistem',
+                    'email'      => 'admin@madukismo.co.id',
+                    'password'   => Hash::make('Admin@Madukismo2024'),
+                    'is_active'  => true,
+                    'jabatan'    => 'System Administrator',
+                    'divisi'     => 'IT',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Assign role Administrator ke admin (insert jika belum ada)
             $adminRoleId = DB::connection('pgsql')
                 ->table('roles')
                 ->where('name', 'Administrator')

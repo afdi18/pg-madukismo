@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import {
   PlusIcon, SearchIcon, EditIcon, Trash2Icon,
   ShieldCheckIcon, UserCheckIcon, UserXIcon, RefreshCwIcon,
@@ -57,14 +58,30 @@ watch([statusFilter, roleFilter], () => loadUsers(1))
 // ================================================================
 // DELETE
 // ================================================================
+const showDeleteConfirm = ref(false)
+const userToDelete = ref<any | null>(null)
+
+function askDeleteUser(user: any) {
+  userToDelete.value = user
+  showDeleteConfirm.value = true
+}
+
 async function deleteUser(user: any) {
-  if (!confirm(`Hapus user "${user.name}" (@${user.username})?`)) return
-  deletingId.value = user.id
+  // kept for backward compatibility
+  userToDelete.value = user
+  await deleteUserConfirmed()
+}
+
+async function deleteUserConfirmed() {
+  if (!userToDelete.value) return
+  deletingId.value = userToDelete.value.id
   try {
-    await axios.delete(`/api/users/${user.id}`)
+    await axios.delete(`/api/users/${userToDelete.value.id}`)
     await loadUsers(meta.value.current_page)
   } finally {
     deletingId.value = null
+    userToDelete.value = null
+    showDeleteConfirm.value = false
   }
 }
 
@@ -263,7 +280,7 @@ function avatarColor(id: number): string {
                   </button>
                   <button
                     v-if="authStore.can('user.delete') && user.id !== authStore.user?.id"
-                    @click="deleteUser(user)"
+                    @click.prevent="askDeleteUser(user)"
                     :disabled="deletingId === user.id"
                     class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50
                            dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
@@ -305,3 +322,5 @@ function avatarColor(id: number): string {
 
   </div>
 </template>
+
+<ConfirmDialog v-model="showDeleteConfirm" :message="userToDelete ? 'Hapus user ' + userToDelete.name + ' (@' + userToDelete.username + ')?' : ''" @confirm="deleteUserConfirmed" />

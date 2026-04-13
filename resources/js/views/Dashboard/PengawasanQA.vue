@@ -466,6 +466,11 @@ function buildPdfHtml(): string {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
+      /* Add vertical gap under the repeated table header on every printed page
+         so body rows (including continued fragments) start lower. */
+      // thead tr:last-child th {
+      //   padding-bottom: 2mm;
+      // }
     }
   </style>
 </head>

@@ -43,7 +43,8 @@ return [
             'url'            => env('SQLSRV_URL'),
             'host'           => env('DB_SQLSRV_HOST', 'localhost'),
             'port'           => env('DB_SQLSRV_PORT', '1433'),
-            'database'       => env('DB_SQLSRV_DATABASE', 'madukismo_tanaman'),
+            // Default database for SQL Server connection set to TIMB_MK
+            'database'       => env('DB_SQLSRV_DATABASE', 'TIMB_MK'),
             'username'       => env('DB_SQLSRV_USERNAME', 'sa'),
             'password'       => env('DB_SQLSRV_PASSWORD', ''),
             'charset'        => 'utf8',

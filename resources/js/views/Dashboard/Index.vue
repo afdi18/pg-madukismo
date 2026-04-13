@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
 import VueApexCharts from 'vue3-apexcharts'
@@ -9,6 +10,7 @@ import {
 } from 'lucide-vue-next'
 
 const authStore   = useAuthStore()
+const route       = useRoute()
 const isLoading   = ref(true)
 const musimList   = ref<any[]>([])
 const musimDipilih= ref<number>(new Date().getFullYear())
@@ -17,6 +19,21 @@ const kpiData     = ref<any>({})
 const rendemenTrend = ref<any>({ labels: [], rendemen_kebun: [], rendemen_pabrik: [], tonase_masuk: [], efisiensi: [] })
 const perbandingan  = ref<any>({ labels: [], tonase_tebang: [], hasil_gula: [], rendemen_rata: [] })
 const periodeFilter = ref('30d')
+
+const pageTitle = computed(() => {
+  const title = route.meta?.title
+  return typeof title === 'string' && title.trim() ? title : 'Dashboard Monitoring'
+})
+
+const pageSubtitle = computed(() => {
+  if (route.name === 'DashboardPenerimaanTebu') {
+    return `Ringkasan tebu masuk, rendemen, dan KPI produksi — Musim Tanam ${musimDipilih.value}`
+  }
+  if (route.name === 'DashboardMonitoringPabrik') {
+    return `Data monitoring pabrik PG Madukismo — Musim Tanam ${musimDipilih.value}`
+  }
+  return `Data produksi PG Madukismo — Musim Tanam ${musimDipilih.value}`
+})
 
 // ================================================================
 // FETCH DATA
@@ -234,9 +251,9 @@ function progressColor(pct: number): string {
     ================================================================ -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
-        <h1 class="text-xl font-bold text-gray-800 dark:text-white">Dashboard Monitoring</h1>
+        <h1 class="text-xl font-bold text-gray-800 dark:text-white">{{ pageTitle }}</h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-          Data produksi PG Madukismo — Musim Tanam {{ musimDipilih }}
+          {{ pageSubtitle }}
         </p>
       </div>
       <div class="flex items-center gap-2 flex-wrap">

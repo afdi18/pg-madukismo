@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import axios from 'axios'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useAuthStore } from '@/stores/auth'
 import { SaveIcon, RefreshCwIcon, ShieldIcon, CheckIcon, Trash2Icon } from 'lucide-vue-next'
 
@@ -116,20 +117,38 @@ function applyAdminPermissions() {
   }
 }
 
-async function deleteAcl() {
-  if (!selectedRole.value) return
-  if (!confirm(`Hapus ACL "${selectedRole.value.display_name}"? Tindakan ini tidak dapat dibatalkan.`)) return
+const showDeleteAclConfirm = ref(false)
+const aclToDelete = ref<RoleItem | null>(null)
 
+function askDeleteAcl(role?: RoleItem) {
+  if (role) selectedRoleId.value = role.id
+  if (!selectedRole.value) return
+  aclToDelete.value = selectedRole.value
+  showDeleteAclConfirm.value = true
+}
+
+async function deleteAcl() {
+  // kept for backward compatibility
+  if (!selectedRole.value) return
+  aclToDelete.value = selectedRole.value
+  await deleteAclConfirmed()
+}
+
+async function deleteAclConfirmed() {
+  if (!aclToDelete.value) return
   isDeleting.value = true
   try {
-    await axios.delete(`/api/acl/roles/${selectedRole.value.id}`)
+    await axios.delete(`/api/acl/roles/${aclToDelete.value.id}`)
     await loadData()
     resetForm()
   } catch (err: any) {
     const msg = err.response?.data?.message ?? 'Gagal menghapus ACL.'
+    // use simple alert for errors (kept as-is)
     alert(msg)
   } finally {
     isDeleting.value = false
+    aclToDelete.value = null
+    showDeleteAclConfirm.value = false
   }
 }
 
@@ -220,7 +239,7 @@ onMounted(loadData)
               <button
                 v-if="!role.is_system && authStore.can('role.delete')"
                 type="button"
-                @click.stop="selectedRoleId = role.id; deleteAcl()"
+                @click.stop.prevent="askDeleteAcl(role)"
                 class="ml-auto p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 title="Hapus ACL"
               >
@@ -351,7 +370,7 @@ onMounted(loadData)
             <button
               v-if="isEditing && !isSystemRoleSelected && authStore.can('role.delete')"
               type="button"
-              @click="deleteAcl"
+              @click.prevent="askDeleteAcl()"
               :disabled="isDeleting"
               class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl"
             >
@@ -379,3 +398,5 @@ onMounted(loadData)
     </div>
   </div>
 </template>
+
+<ConfirmDialog v-model="showDeleteAclConfirm" :message="aclToDelete ? 'Hapus ACL ' + aclToDelete.display_name + '? Tindakan ini tidak dapat dibatalkan.' : ''" @confirm="deleteAclConfirmed" />

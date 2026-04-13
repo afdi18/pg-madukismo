@@ -6,9 +6,10 @@ import { useTheme } from '@/composables/useTheme'
 import { useFullscreen } from '@/composables/useFullscreen'
 import {
   LayoutDashboardIcon, MapIcon, LeafIcon, FlaskConicalIcon,
+  FactoryIcon,
   UsersIcon, ChevronDownIcon, BellIcon, MoonIcon, SunIcon,
   MaximizeIcon, MinimizeIcon, LogOutIcon, UserIcon,
-  MenuIcon, XIcon, SettingsIcon, ShieldCheckIcon,
+  MenuIcon, XIcon, SettingsIcon, ShieldCheckIcon, TruckIcon,
 } from 'lucide-vue-next'
 
 interface NavChild {
@@ -55,7 +56,7 @@ const navItems = computed<NavItem[]>(() => [
         icon: LayoutDashboardIcon,
         permission: 'dashboard.view',
     children: [
-      { label: 'Penerimaan Tebu', path: '/dashboard/penerimaan-tebu' },
+      { label: 'Informasi Tebu', path: '/dashboard/informasi-tebu' },
       { label: 'Monitoring Pabrik', path: '/dashboard/monitoring-pabrik' },
       { label: 'Angka Pengawasan QA', path: '/dashboard/pengawasan-qa' },
     ],
@@ -71,6 +72,24 @@ const navItems = computed<NavItem[]>(() => [
         icon: MapIcon,
         path: '/peta-kebun',
         permission: 'peta_kebun.view',
+    },
+    {
+      label: 'Penerimaan Tebu',
+      icon: TruckIcon,
+      permission: 'penerimaan.view',
+      children: [
+        { label: 'Manajemen SPA', path: '/penerimaan/manajemen-spa' },
+        { label: 'Monitoring Antrian', path: '/penerimaan/monitoring-antrian' },
+        { label: 'Data Pemasukan', path: '/penerimaan/data-pemasukan' },
+      ],
+    },
+    {
+      label: 'Operasional Pabrik',
+      icon: FactoryIcon,
+      permission: 'operasional.view',
+      children: [
+        { label: 'Data Digiling', path: '/operasional/data-digiling' },
+      ],
     },
     {
         label: 'Analisa QA',
@@ -337,7 +356,7 @@ async function handleLogout() {
       ]"
     >
       <!-- HEADER -->
-      <header class="sticky top-0 z-30 h-16 flex items-center gap-3 px-4 lg:px-6
+      <header class="sticky top-0 z-[120] h-16 flex items-center gap-3 px-4 lg:px-6
                      bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shrink-0">
 
         <!-- Mobile menu button -->
@@ -375,7 +394,7 @@ async function handleLogout() {
           </button>
 
           <!-- Notifikasi -->
-          <div class="relative">
+          <div class="relative z-[130]">
             <button
               @click="notifOpen = !notifOpen"
               class="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
@@ -412,7 +431,7 @@ async function handleLogout() {
             <div
               v-if="userMenuOpen"
               class="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-gray-800 border border-gray-200
-                     dark:border-gray-700 rounded-xl shadow-lg py-1 z-50"
+                dark:border-gray-700 rounded-xl shadow-lg py-1 z-[140]"
               @click.away="userMenuOpen = false"
             >
               <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">

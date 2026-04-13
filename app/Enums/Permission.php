@@ -38,6 +38,24 @@ enum Permission: string
     case LAB_QA_EXPORT            = 'lab_qa.export';
 
     // ================================================================
+    // PENERIMAAN TEBU (SQL Server)
+    // ================================================================
+    case PENERIMAAN_VIEW          = 'penerimaan.view';
+    case PENERIMAAN_CREATE        = 'penerimaan.create';
+    case PENERIMAAN_UPDATE        = 'penerimaan.update';
+    case PENERIMAAN_DELETE        = 'penerimaan.delete';
+    case PENERIMAAN_EXPORT        = 'penerimaan.export';
+
+    // ================================================================
+    // OPERASIONAL PABRIK (SQL Server)
+    // ================================================================
+    case OPERASIONAL_VIEW         = 'operasional.view';
+    case OPERASIONAL_CREATE       = 'operasional.create';
+    case OPERASIONAL_UPDATE       = 'operasional.update';
+    case OPERASIONAL_DELETE       = 'operasional.delete';
+    case OPERASIONAL_EXPORT       = 'operasional.export';
+
+    // ================================================================
     // USER MANAGEMENT (PostgreSQL)
     // ================================================================
     case USER_VIEW                = 'user.view';
@@ -86,6 +104,16 @@ enum Permission: string
             self::LAB_QA_DELETE            => 'Hapus Data Lab QA',
             self::LAB_QA_APPROVE           => 'Approve Lab QA',
             self::LAB_QA_EXPORT            => 'Export Lab QA',
+            self::PENERIMAAN_VIEW          => 'Lihat Penerimaan Tebu',
+            self::PENERIMAAN_CREATE        => 'Tambah Penerimaan Tebu',
+            self::PENERIMAAN_UPDATE        => 'Edit Penerimaan Tebu',
+            self::PENERIMAAN_DELETE        => 'Hapus Penerimaan Tebu',
+            self::PENERIMAAN_EXPORT        => 'Export Penerimaan Tebu',
+            self::OPERASIONAL_VIEW         => 'Lihat Operasional Pabrik',
+            self::OPERASIONAL_CREATE       => 'Tambah Operasional Pabrik',
+            self::OPERASIONAL_UPDATE       => 'Edit Operasional Pabrik',
+            self::OPERASIONAL_DELETE       => 'Hapus Operasional Pabrik',
+            self::OPERASIONAL_EXPORT       => 'Export Operasional Pabrik',
             self::USER_VIEW                => 'Lihat User',
             self::USER_CREATE              => 'Tambah User',
             self::USER_UPDATE              => 'Edit User',
@@ -113,6 +141,8 @@ enum Permission: string
             str_starts_with($this->value, 'tanaman')    => 'Data Tanaman',
             str_starts_with($this->value, 'peta_kebun') => 'Peta Kebun',
             str_starts_with($this->value, 'lab_qa')     => 'Lab QA',
+            str_starts_with($this->value, 'penerimaan') => 'Penerimaan Tebu',
+            str_starts_with($this->value, 'operasional') => 'Operasional Pabrik',
             str_starts_with($this->value, 'user')       => 'Manajemen User',
             str_starts_with($this->value, 'role')       => 'Manajemen Role',
             str_starts_with($this->value, 'sistem')     => 'Sistem',
@@ -141,6 +171,10 @@ enum Permission: string
             self::PETA_KEBUN_VIEW->value,
             self::LAB_QA_VIEW->value,
             self::LAB_QA_EXPORT->value,
+            self::PENERIMAAN_VIEW->value,
+            self::PENERIMAAN_EXPORT->value,
+            self::OPERASIONAL_VIEW->value,
+            self::OPERASIONAL_EXPORT->value,
         ];
     }
 
@@ -158,6 +192,12 @@ enum Permission: string
             self::LAB_QA_VIEW->value,
             self::LAB_QA_CREATE->value,
             self::LAB_QA_UPDATE->value,
+            self::PENERIMAAN_VIEW->value,
+            self::PENERIMAAN_CREATE->value,
+            self::PENERIMAAN_UPDATE->value,
+            self::OPERASIONAL_VIEW->value,
+            self::OPERASIONAL_CREATE->value,
+            self::OPERASIONAL_UPDATE->value,
         ];
     }
 
@@ -171,6 +211,8 @@ enum Permission: string
             self::TANAMAN_VIEW->value,
             self::PETA_KEBUN_VIEW->value,
             self::LAB_QA_VIEW->value,
+            self::PENERIMAAN_VIEW->value,
+            self::OPERASIONAL_VIEW->value,
         ];
     }
 }
