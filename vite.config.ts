@@ -49,5 +49,43 @@ export default defineConfig(({ mode }) => {
                 '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
             },
         },
+        build: {
+            chunkSizeWarningLimit: 700,
+            rollupOptions: {
+                output: {
+                    manualChunks(id) {
+                        if (!id.includes('node_modules')) {
+                            return
+                        }
+
+                        if (id.includes('apexcharts') || id.includes('vue3-apexcharts')) {
+                            return 'vendor-charts'
+                        }
+
+                        if (id.includes('leaflet') || id.includes('leaflet.markercluster')) {
+                            return 'vendor-maps'
+                        }
+
+                        if (id.includes('@fullcalendar')) {
+                            return 'vendor-calendar'
+                        }
+
+                        if (id.includes('swiper')) {
+                            return 'vendor-swiper'
+                        }
+
+                        if (
+                            id.includes('/vue/') ||
+                            id.includes('vue-router') ||
+                            id.includes('/pinia/')
+                        ) {
+                            return 'vendor-vue-core'
+                        }
+
+                        return 'vendor'
+                    },
+                },
+            },
+        },
     }
 })

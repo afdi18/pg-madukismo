@@ -77,7 +77,7 @@ async function handleLogin() {
 
       <!-- Footer branding -->
       <p class="absolute bottom-6 text-yellow-200 text-xs">
-        PT Madubaru — Yogyakarta
+        KSO Madubaru — Yogyakarta
       </p>
     </div>
 

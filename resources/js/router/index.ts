@@ -37,18 +37,21 @@ const router = createRouter({
                 },
                 {
                     path: 'dashboard/informasi-tebu',
-                    alias: 'dashboard/penerimaan-tebu',
                     name: 'DashboardPenerimaanTebu',
-                    component: () => import('@/views/Dashboard/Index.vue'),
+                    component: () => import('@/views/Dashboard/InformasiTebu.vue'),
                     meta: {
                         title: 'Dashboard Informasi Tebu',
                         permission: 'dashboard.view',
                     },
                 },
                 {
+                    path: 'dashboard/penerimaan-tebu',
+                    redirect: { name: 'DashboardPenerimaanTebu' },
+                },
+                {
                     path: 'dashboard/monitoring-pabrik',
                     name: 'DashboardMonitoringPabrik',
-                    component: () => import('@/views/Dashboard/Index.vue'),
+                    component: () => import('@/views/Dashboard/MonitoringPabrik.vue'),
                     meta: {
                         title: 'Dashboard Monitoring Pabrik',
                         permission: 'dashboard.view',
