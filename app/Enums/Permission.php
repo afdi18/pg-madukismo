@@ -38,7 +38,7 @@ enum Permission: string
     case PENERIMAAN_EXPORT        = 'penerimaan.export';
 
     // ================================================================
-    // OPERASIONAL PABRIK (SQL Server)
+    // MONITORING PABRIK (dipakai di menu Dashboard)
     // ================================================================
     case OPERASIONAL_VIEW         = 'operasional.view';
     case OPERASIONAL_CREATE       = 'operasional.create';
@@ -57,7 +57,7 @@ enum Permission: string
     case USER_ASSIGN_ATTRIBUTE    = 'user.assign_attribute';
 
     // ================================================================
-    // ROLE & PERMISSION MANAGEMENT
+    // MANAJEMEN ACL
     // ================================================================
     case ROLE_VIEW                = 'role.view';
     case ROLE_CREATE              = 'role.create';
@@ -78,39 +78,39 @@ enum Permission: string
     public function label(): string
     {
         return match($this) {
-            self::DASHBOARD_VIEW           => 'Lihat Dashboard',
+            self::DASHBOARD_VIEW           => 'Akses Dashboard (Informasi Tebu, Monitoring Pabrik, Angka Pengawasan QA)',
             self::DASHBOARD_EXPORT         => 'Export Dashboard',
             self::PETA_KEBUN_VIEW          => 'Lihat Peta Kebun',
             self::PETA_KEBUN_CREATE        => 'Tambah Peta Kebun',
             self::PETA_KEBUN_UPDATE        => 'Edit Peta Kebun',
             self::PETA_KEBUN_DELETE        => 'Hapus Peta Kebun',
-            self::LAB_QA_VIEW              => 'Lihat Lab QA',
-            self::LAB_QA_CREATE            => 'Tambah Data Lab QA',
-            self::LAB_QA_UPDATE            => 'Edit Data Lab QA',
+            self::LAB_QA_VIEW              => 'Akses Analisa QA (Entri Pabrik Gula & Alkohol)',
+            self::LAB_QA_CREATE            => 'Tambah Data Analisa QA',
+            self::LAB_QA_UPDATE            => 'Edit Data Analisa QA',
             self::LAB_QA_DELETE            => 'Hapus Data Lab QA',
             self::LAB_QA_APPROVE           => 'Approve Lab QA',
             self::LAB_QA_EXPORT            => 'Export Lab QA',
-            self::PENERIMAAN_VIEW          => 'Lihat Penerimaan Tebu',
+            self::PENERIMAAN_VIEW          => 'Akses Penerimaan Tebu (Data SPA, Pengaturan EPOS, Monitoring Antrian, Data Pemasukan)',
             self::PENERIMAAN_CREATE        => 'Tambah Penerimaan Tebu',
             self::PENERIMAAN_UPDATE        => 'Edit Penerimaan Tebu',
             self::PENERIMAAN_DELETE        => 'Hapus Penerimaan Tebu',
             self::PENERIMAAN_EXPORT        => 'Export Penerimaan Tebu',
-            self::OPERASIONAL_VIEW         => 'Lihat Operasional Pabrik',
-            self::OPERASIONAL_CREATE       => 'Tambah Operasional Pabrik',
-            self::OPERASIONAL_UPDATE       => 'Edit Operasional Pabrik',
-            self::OPERASIONAL_DELETE       => 'Hapus Operasional Pabrik',
-            self::OPERASIONAL_EXPORT       => 'Export Operasional Pabrik',
-            self::USER_VIEW                => 'Lihat User',
+            self::OPERASIONAL_VIEW         => 'Akses Monitoring Pabrik',
+            self::OPERASIONAL_CREATE       => 'Tambah Data Monitoring Pabrik',
+            self::OPERASIONAL_UPDATE       => 'Edit Data Monitoring Pabrik',
+            self::OPERASIONAL_DELETE       => 'Hapus Data Monitoring Pabrik',
+            self::OPERASIONAL_EXPORT       => 'Export Data Monitoring Pabrik',
+            self::USER_VIEW                => 'Lihat Manajemen User',
             self::USER_CREATE              => 'Tambah User',
             self::USER_UPDATE              => 'Edit User',
             self::USER_DELETE              => 'Hapus User',
             self::USER_ASSIGN_ROLE         => 'Assign Role User',
             self::USER_ASSIGN_ATTRIBUTE    => 'Assign Atribut User',
-            self::ROLE_VIEW                => 'Lihat Role',
-            self::ROLE_CREATE              => 'Tambah Role',
-            self::ROLE_UPDATE              => 'Edit Role',
-            self::ROLE_DELETE              => 'Hapus Role',
-            self::ROLE_ASSIGN_PERMISSION   => 'Assign Permission Role',
+            self::ROLE_VIEW                => 'Lihat Manajemen ACL',
+            self::ROLE_CREATE              => 'Tambah ACL',
+            self::ROLE_UPDATE              => 'Edit ACL',
+            self::ROLE_DELETE              => 'Hapus ACL',
+            self::ROLE_ASSIGN_PERMISSION   => 'Assign Permission ACL',
             self::SISTEM_SETTINGS          => 'Pengaturan Sistem',
             self::SISTEM_LOGS              => 'Lihat Log Sistem',
             self::SISTEM_BACKUP            => 'Backup Sistem',
@@ -125,11 +125,11 @@ enum Permission: string
         return match(true) {
             str_starts_with($this->value, 'dashboard')  => 'Dashboard',
             str_starts_with($this->value, 'peta_kebun') => 'Peta Kebun',
-            str_starts_with($this->value, 'lab_qa')     => 'Lab QA',
+            str_starts_with($this->value, 'lab_qa')     => 'Analisa QA',
             str_starts_with($this->value, 'penerimaan') => 'Penerimaan Tebu',
-            str_starts_with($this->value, 'operasional') => 'Operasional Pabrik',
+            str_starts_with($this->value, 'operasional') => 'Dashboard',
             str_starts_with($this->value, 'user')       => 'Manajemen User',
-            str_starts_with($this->value, 'role')       => 'Manajemen Role',
+            str_starts_with($this->value, 'role')       => 'Manajemen ACL',
             str_starts_with($this->value, 'sistem')     => 'Sistem',
             default                                     => 'Lainnya',
         };

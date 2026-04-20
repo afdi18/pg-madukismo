@@ -8,12 +8,13 @@ import {
   LayoutDashboardIcon, MapIcon, FlaskConicalIcon,
   UsersIcon, ChevronDownIcon, BellIcon, MoonIcon, SunIcon,
   MaximizeIcon, MinimizeIcon, LogOutIcon, UserIcon,
-  MenuIcon, XIcon, SettingsIcon, ShieldCheckIcon, TruckIcon,
+  MenuIcon, XIcon, ShieldCheckIcon, TruckIcon,
 } from 'lucide-vue-next'
 
 interface NavChild {
   label: string
   path: string
+  permission?: string
 }
 
 interface NavItem {
@@ -55,9 +56,9 @@ const navItems = computed<NavItem[]>(() => [
         icon: LayoutDashboardIcon,
         permission: 'dashboard.view',
         children: [
-          { label: 'Informasi Tebu', path: '/dashboard/informasi-tebu' },
-          { label: 'Monitoring Pabrik', path: '/dashboard/monitoring-pabrik' },
-          { label: 'Angka Pengawasan QA', path: '/dashboard/pengawasan-qa' },
+          { label: 'Informasi Tebu', path: '/dashboard/informasi-tebu', permission: 'dashboard.view' },
+          { label: 'Monitoring Pabrik', path: '/dashboard/monitoring-pabrik', permission: 'operasional.view' },
+          { label: 'Angka Pengawasan QA', path: '/dashboard/pengawasan-qa', permission: 'lab_qa.view' },
         ],
     },
     {
@@ -65,9 +66,9 @@ const navItems = computed<NavItem[]>(() => [
       icon: TruckIcon,
       permission: 'penerimaan.view',
       children: [
-        { label: 'Manajemen SPA', path: '/penerimaan/manajemen-spa' },
-        { label: 'Monitoring Antrian', path: '/penerimaan/monitoring-antrian' },
-        { label: 'Data Pemasukan', path: '/penerimaan/data-pemasukan' },
+        { label: 'Manajemen SPA', path: '/penerimaan/manajemen-spa', permission: 'penerimaan.view' },
+        { label: 'Monitoring Antrian', path: '/penerimaan/monitoring-antrian', permission: 'penerimaan.view' },
+        { label: 'Data Pemasukan', path: '/penerimaan/data-pemasukan', permission: 'penerimaan.view' },
       ],
     },
     {
@@ -75,8 +76,8 @@ const navItems = computed<NavItem[]>(() => [
         icon: FlaskConicalIcon,
         permission: 'lab_qa.view',
         children: [
-            { label: 'Pabrik Gula',    path: '/lab-qa' },
-            { label: 'Pabrik Alkohol', path: '/lab-qa/alkohol' },
+            { label: 'Pabrik Gula',    path: '/lab-qa', permission: 'lab_qa.view' },
+            { label: 'Pabrik Alkohol', path: '/lab-qa/alkohol', permission: 'lab_qa.view' },
         ],
     },
    {
@@ -100,12 +101,6 @@ const adminItems = computed<AdminItem[]>(() => [
     path: '/admin/acl',
     permission: 'role.view',
   },
-    {
-        label: 'Pengaturan',
-        icon: SettingsIcon,
-        path: '/admin/settings',
-        permission: 'sistem.settings',
-    },
 ])
 
 function canAccess(permission?: string): boolean {
@@ -115,7 +110,12 @@ function canAccess(permission?: string): boolean {
 }
 
 function hasChildren(item: NavItem): boolean {
-  return Array.isArray(item.children) && item.children.length > 0
+  return getVisibleChildren(item).length > 0
+}
+
+function getVisibleChildren(item: NavItem): NavChild[] {
+  const children = item.children ?? []
+  return children.filter((child) => canAccess(child.permission))
 }
 
 function toggleSubMenu(label: string) {
@@ -229,18 +229,18 @@ async function handleLogout() {
           </p>
           <template v-for="item in navItems" :key="item.label">
             <!-- Item with children (sub-menu) -->
-            <div v-if="canAccess(item.permission) && hasChildren(item)">
+            <div v-if="hasChildren(item)">
               <button
                 @click="toggleSubMenu(item.label)"
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
                        text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800
                        transition-colors group"
-                :class="isSubMenuActive(item.children) ? '!bg-yellow-50 !text-yellow-600 dark:!bg-yellow-500/10 dark:!text-yellow-400' : ''"
+                :class="isSubMenuActive(getVisibleChildren(item)) ? '!bg-yellow-50 !text-yellow-600 dark:!bg-yellow-500/10 dark:!text-yellow-400' : ''"
               >
                 <component
                   :is="item.icon"
                   class="w-5 h-5 shrink-0 transition-colors"
-                  :class="isSubMenuActive(item.children) ? 'text-yellow-500' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'"
+                  :class="isSubMenuActive(getVisibleChildren(item)) ? 'text-yellow-500' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'"
                 />
                 <span v-if="isExpanded" class="flex-1 truncate text-left">{{ item.label }}</span>
                 <ChevronDownIcon
@@ -255,17 +255,17 @@ async function handleLogout() {
                 class="mt-0.5 ml-4 pl-4 border-l-2 border-yellow-200 dark:border-yellow-800 space-y-0.5"
               >
                 <RouterLink
-                  v-for="child in item.children"
+                  v-for="child in getVisibleChildren(item)"
                   :key="child.path"
                   :to="child.path"
                   class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm
                          text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800
                          transition-colors"
-                  :class="isChildActive(child.path, item.children) ? '!bg-yellow-50 !text-yellow-600 dark:!bg-yellow-500/10 dark:!text-yellow-400 font-medium' : ''"
+                  :class="isChildActive(child.path, getVisibleChildren(item)) ? '!bg-yellow-50 !text-yellow-600 dark:!bg-yellow-500/10 dark:!text-yellow-400 font-medium' : ''"
                   active-class=""
                 >
                   <span class="w-1.5 h-1.5 rounded-full shrink-0"
-                    :class="isChildActive(child.path, item.children) ? 'bg-yellow-500' : 'bg-gray-300 dark:bg-gray-600'"
+                    :class="isChildActive(child.path, getVisibleChildren(item)) ? 'bg-yellow-500' : 'bg-gray-300 dark:bg-gray-600'"
                   />
                   {{ child.label }}
                 </RouterLink>
@@ -293,7 +293,7 @@ async function handleLogout() {
         </div>
 
         <!-- Menu admin -->
-        <div v-if="isAdministratorByRole || authStore.isAdmin || authStore.canAny(['user.view', 'role.view', 'sistem.settings'])" class="pt-4">
+        <div v-if="isAdministratorByRole || authStore.isAdmin || authStore.canAny(['user.view', 'role.view'])" class="pt-4">
           <p v-if="isExpanded" class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-600">
             Administrasi
           </p>

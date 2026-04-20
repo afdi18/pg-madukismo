@@ -32,7 +32,7 @@ const router = createRouter({
                     component: () => import('@/views/Dashboard/Index.vue'),
                     meta: {
                         title: 'Dashboard Monitoring',
-                        permission: 'dashboard.view',
+                        permission: 'dashboard.view|operasional.view|lab_qa.view',
                     },
                 },
                 {
@@ -244,8 +244,13 @@ router.beforeEach(async (to) => {
     }
 
     // Cek permission ABAC (jika route butuh permission tertentu)
-    if (to.meta.permission && !authStore.can(to.meta.permission as string)) {
-        return { name: 'Forbidden' }
+    // Support format "perm1|perm2" untuk OR logic
+    if (to.meta.permission) {
+        const perms = (to.meta.permission as string).split('|')
+        const hasAccess = perms.some(p => authStore.can(p.trim()))
+        if (!hasAccess) {
+            return { name: 'Forbidden' }
+        }
     }
 
     return true

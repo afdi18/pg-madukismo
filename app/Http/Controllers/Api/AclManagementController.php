@@ -174,7 +174,7 @@ class AclManagementController extends Controller
         }
 
         $userCount = DB::connection('pgsql')
-            ->table('role_user')
+            ->table('user_roles')
             ->where('role_id', $role->id)
             ->count();
 

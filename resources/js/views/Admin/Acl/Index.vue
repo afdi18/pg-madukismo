@@ -11,6 +11,18 @@ interface PermissionItem {
   display_name: string
 }
 
+interface MenuAccessItem {
+  key: string
+  label: string
+  permissionNames: string[]
+}
+
+interface MenuAccessGroup {
+  key: string
+  label: string
+  items: MenuAccessItem[]
+}
+
 interface RoleItem {
   id: number
   name: string
@@ -44,6 +56,71 @@ const totalPermissionCount = computed(() => Object.values(permissionGroups.value
 const isEditing = computed(() => selectedRoleId.value !== null)
 const selectedRole = computed(() => roles.value.find(r => r.id === selectedRoleId.value) ?? null)
 const isSystemRoleSelected = computed(() => selectedRole.value?.is_system ?? false)
+const allPermissions = computed(() => Object.values(permissionGroups.value).flat())
+
+const menuAccessGroups: MenuAccessGroup[] = [
+  {
+    key: 'dashboard',
+    label: 'Dashboard',
+    items: [
+      { key: 'dashboard-informasi-tebu', label: 'Informasi Tebu', permissionNames: ['dashboard.view'] },
+      { key: 'dashboard-monitoring-pabrik', label: 'Monitoring Pabrik', permissionNames: ['operasional.view'] },
+      { key: 'dashboard-pengawasan-qa', label: 'Angka Pengawasan QA', permissionNames: ['lab_qa.view'] },
+    ],
+  },
+  {
+    key: 'penerimaan',
+    label: 'Penerimaan Tebu',
+    items: [
+      {
+        key: 'penerimaan-manajemen-spa',
+        label: 'Manajemen SPA',
+        permissionNames: ['penerimaan.view', 'penerimaan.update'],
+      },
+      {
+        key: 'penerimaan-monitoring-antrian',
+        label: 'Monitoring Antrian',
+        permissionNames: ['penerimaan.view'],
+      },
+      {
+        key: 'penerimaan-data-pemasukan',
+        label: 'Data Pemasukan',
+        permissionNames: ['penerimaan.view'],
+      },
+    ],
+  },
+  {
+    key: 'analisa-qa',
+    label: 'Analisa QA',
+    items: [
+      {
+        key: 'analisa-qa-gula',
+        label: 'Pabrik Gula',
+        permissionNames: ['lab_qa.view', 'lab_qa.create', 'lab_qa.update'],
+      },
+      {
+        key: 'analisa-qa-alkohol',
+        label: 'Pabrik Alkohol',
+        permissionNames: ['lab_qa.view', 'lab_qa.create', 'lab_qa.update'],
+      },
+    ],
+  },
+  {
+    key: 'peta-kebun',
+    label: 'Peta Kebun',
+    items: [
+      { key: 'peta-kebun-index', label: 'Peta Kebun', permissionNames: ['peta_kebun.view'] },
+    ],
+  },
+  {
+    key: 'admin',
+    label: 'Administrasi',
+    items: [
+      { key: 'manajemen-user', label: 'Manajemen User', permissionNames: ['user.view'] },
+      { key: 'manajemen-acl', label: 'Manajemen ACL', permissionNames: ['role.view'] },
+    ],
+  },
+]
 const canSave = computed(() => {
   if (isSystemRoleSelected.value) return false
   return isEditing.value ? authStore.can('role.update') : authStore.can('role.create')
@@ -115,6 +192,49 @@ function applyAdminPermissions() {
   if (form.value.make_admin) {
     form.value.permission_ids = Object.values(permissionGroups.value).flat().map(p => p.id)
   }
+}
+
+function permissionIdsByNames(permissionNames: string[]): number[] {
+  return allPermissions.value
+    .filter(permission => permissionNames.includes(permission.name))
+    .map(permission => permission.id)
+}
+
+function isMenuItemChecked(item: MenuAccessItem): boolean {
+  const ids = permissionIdsByNames(item.permissionNames)
+  if (ids.length === 0) return false
+  return ids.every(id => form.value.permission_ids.includes(id))
+}
+
+function toggleMenuItem(item: MenuAccessItem) {
+  const ids = permissionIdsByNames(item.permissionNames)
+  if (ids.length === 0) return
+
+  if (isMenuItemChecked(item)) {
+    form.value.permission_ids = form.value.permission_ids.filter(id => !ids.includes(id))
+    return
+  }
+
+  const merged = new Set([...form.value.permission_ids, ...ids])
+  form.value.permission_ids = Array.from(merged)
+}
+
+function isMenuGroupChecked(group: MenuAccessGroup): boolean {
+  if (group.items.length === 0) return false
+  return group.items.every(item => isMenuItemChecked(item))
+}
+
+function toggleMenuGroup(group: MenuAccessGroup) {
+  const groupIds = Array.from(new Set(group.items.flatMap(item => permissionIdsByNames(item.permissionNames))))
+  if (groupIds.length === 0) return
+
+  if (isMenuGroupChecked(group)) {
+    form.value.permission_ids = form.value.permission_ids.filter(id => !groupIds.includes(id))
+    return
+  }
+
+  const merged = new Set([...form.value.permission_ids, ...groupIds])
+  form.value.permission_ids = Array.from(merged)
 }
 
 const showDeleteAclConfirm = ref(false)
@@ -323,35 +443,35 @@ onMounted(loadData)
 
         <div class="space-y-3">
           <div
-            v-for="(permissions, groupName) in permissionGroups"
-            :key="groupName"
+            v-for="group in menuAccessGroups"
+            :key="group.key"
             class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-3"
           >
             <label class="inline-flex items-center gap-2 mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
               <input
                 type="checkbox"
-                :checked="groupChecked(permissions)"
+                :checked="isMenuGroupChecked(group)"
                   :disabled="isSystemRoleSelected"
-                @change="toggleGroup(permissions)"
+                @change="toggleMenuGroup(group)"
                 class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-yellow-500 focus:ring-yellow-500"
               />
-              {{ groupName }}
+              {{ group.label }}
             </label>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
               <label
-                v-for="permission in permissions"
-                :key="permission.id"
+                v-for="item in group.items"
+                :key="item.key"
                 class="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"
               >
                 <input
                   type="checkbox"
-                  :checked="form.permission_ids.includes(permission.id)"
+                  :checked="isMenuItemChecked(item)"
                   :disabled="isSystemRoleSelected"
-                  @change="togglePermission(permission.id)"
+                  @change="toggleMenuItem(item)"
                   class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-yellow-500 focus:ring-yellow-500"
                 />
-                {{ permission.display_name }}
+                {{ item.label }}
               </label>
             </div>
           </div>
@@ -396,7 +516,11 @@ onMounted(loadData)
         </div>
       </form>
     </div>
+
+    <ConfirmDialog
+      v-model="showDeleteAclConfirm"
+      :message="aclToDelete ? 'Hapus ACL ' + aclToDelete.display_name + '? Tindakan ini tidak dapat dibatalkan.' : ''"
+      @confirm="deleteAclConfirmed"
+    />
   </div>
 </template>
-
-<ConfirmDialog v-model="showDeleteAclConfirm" :message="aclToDelete ? 'Hapus ACL ' + aclToDelete.display_name + '? Tindakan ini tidak dapat dibatalkan.' : ''" @confirm="deleteAclConfirmed" />

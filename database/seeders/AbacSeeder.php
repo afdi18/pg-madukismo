@@ -12,6 +12,7 @@ class AbacSeeder extends Seeder
     public function run(): void
     {
         DB::connection('pgsql')->transaction(function () {
+            $now = now();
 
             // ============================================================
             // 1. INSERT PERMISSIONS
@@ -23,11 +24,15 @@ class AbacSeeder extends Seeder
                     'display_name' => $perm->label(),
                     'group'        => $perm->group(),
                     'description'  => null,
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
+                    'created_at'   => $now,
+                    'updated_at'   => $now,
                 ];
             }
-            DB::connection('pgsql')->table('permissions')->insertOrIgnore($permissionsData);
+            DB::connection('pgsql')->table('permissions')->upsert(
+                $permissionsData,
+                ['name'],
+                ['display_name', 'group', 'description', 'updated_at']
+            );
 
             // ============================================================
             // 2. INSERT ROLES
@@ -71,11 +76,16 @@ class AbacSeeder extends Seeder
             ];
 
             foreach ($roles as &$role) {
-                $role['created_at'] = now();
-                $role['updated_at'] = now();
+                $role['created_at'] = $now;
+                $role['updated_at'] = $now;
             }
+            unset($role);
 
-            DB::connection('pgsql')->table('roles')->insertOrIgnore($roles);
+            DB::connection('pgsql')->table('roles')->upsert(
+                $roles,
+                ['name'],
+                ['display_name', 'description', 'is_system', 'color', 'updated_at']
+            );
 
             // ============================================================
             // 3. ASSIGN PERMISSIONS KE ROLES
@@ -97,19 +107,39 @@ class AbacSeeder extends Seeder
                     ->where('name', $roleName)
                     ->value('id');
 
+                if (!$roleId) {
+                    continue;
+                }
+
                 $permIds = DB::connection('pgsql')
                     ->table('permissions')
                     ->whereIn('name', $permNames)
                     ->pluck('id');
 
+                if ($permIds->isEmpty()) {
+                    DB::connection('pgsql')->table('role_permission')
+                        ->where('role_id', $roleId)
+                        ->delete();
+                    continue;
+                }
+
+                DB::connection('pgsql')->table('role_permission')
+                    ->where('role_id', $roleId)
+                    ->whereNotIn('permission_id', $permIds)
+                    ->delete();
+
                 $pivotData = $permIds->map(fn($pid) => [
                     'role_id'       => $roleId,
                     'permission_id' => $pid,
-                    'created_at'    => now(),
-                    'updated_at'    => now(),
+                    'created_at'    => $now,
+                    'updated_at'    => $now,
                 ])->toArray();
 
-                DB::connection('pgsql')->table('role_permission')->insertOrIgnore($pivotData);
+                DB::connection('pgsql')->table('role_permission')->upsert(
+                    $pivotData,
+                    ['role_id', 'permission_id'],
+                    ['updated_at']
+                );
             }
 
             // ============================================================
@@ -129,8 +159,8 @@ class AbacSeeder extends Seeder
                     'is_active'  => true,
                     'jabatan'    => 'System Administrator',
                     'divisi'     => 'IT',
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ]);
             }
 
@@ -140,14 +170,14 @@ class AbacSeeder extends Seeder
                 ->where('name', 'Administrator')
                 ->value('id');
 
-            DB::connection('pgsql')->table('user_roles')->insertOrIgnore([
+            DB::connection('pgsql')->table('user_roles')->upsert([
                 'user_id'     => $adminId,
                 'role_id'     => $adminRoleId,
-                'assigned_at' => now(),
+                'assigned_at' => $now,
                 'assigned_by' => $adminId,
-                'created_at'  => now(),
-                'updated_at'  => now(),
-            ]);
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            ], ['user_id', 'role_id'], ['assigned_at', 'assigned_by', 'updated_at']);
 
             $this->command->info('✅ ABAC Seeder berhasil:');
             $this->command->info('   - ' . count($permissionsData) . ' permissions dibuat');
