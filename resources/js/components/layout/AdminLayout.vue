@@ -6,7 +6,6 @@ import { useTheme } from '@/composables/useTheme'
 import { useFullscreen } from '@/composables/useFullscreen'
 import {
   LayoutDashboardIcon, MapIcon, FlaskConicalIcon,
-  FactoryIcon,
   UsersIcon, ChevronDownIcon, BellIcon, MoonIcon, SunIcon,
   MaximizeIcon, MinimizeIcon, LogOutIcon, UserIcon,
   MenuIcon, XIcon, SettingsIcon, ShieldCheckIcon, TruckIcon,
@@ -69,14 +68,6 @@ const navItems = computed<NavItem[]>(() => [
         { label: 'Manajemen SPA', path: '/penerimaan/manajemen-spa' },
         { label: 'Monitoring Antrian', path: '/penerimaan/monitoring-antrian' },
         { label: 'Data Pemasukan', path: '/penerimaan/data-pemasukan' },
-      ],
-    },
-    {
-      label: 'Operasional Pabrik',
-      icon: FactoryIcon,
-      permission: 'operasional.view',
-      children: [
-        { label: 'Data Digiling', path: '/operasional/data-digiling' },
       ],
     },
     {

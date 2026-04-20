@@ -141,17 +141,6 @@ const router = createRouter({
                     ],
                 },
 
-                // Operasional Pabrik
-                {
-                    path: 'operasional/data-digiling',
-                    name: 'OperasionalDataDigiling',
-                    component: () => import('@/views/Operasional/DataDigiling.vue'),
-                    meta: {
-                        title: 'Data Digiling',
-                        permission: 'operasional.view',
-                    },
-                },
-
                 // Manajemen User (Admin only)
                 {
                     path: 'admin/users',

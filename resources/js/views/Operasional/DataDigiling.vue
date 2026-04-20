@@ -15,36 +15,36 @@ const tanggalLabel = 'Senin, 13 April 2026'
 const tanggalInput = ref('2026-04-13')
 
 const pagiRows: DigilingRow[] = [
-  { jam: '06 - 07', berat: 1616, truk: 19, lori: 0, total: 19, pemasukan: 0 },
-  { jam: '07 - 08', berat: 1658, truk: 21, lori: 0, total: 21, pemasukan: 6 },
-  { jam: '08 - 09', berat: 1865, truk: 27, lori: 0, total: 27, pemasukan: 2 },
-  { jam: '09 - 10', berat: 2004, truk: 25, lori: 0, total: 25, pemasukan: 3 },
-  { jam: '10 - 11', berat: 1921, truk: 22, lori: 0, total: 22, pemasukan: 0 },
-  { jam: '11 - 12', berat: 1639, truk: 19, lori: 0, total: 19, pemasukan: 1 },
-  { jam: '12 - 13', berat: 2084, truk: 27, lori: 0, total: 27, pemasukan: 0 },
-  { jam: '13 - 14', berat: 1473, truk: 19, lori: 0, total: 19, pemasukan: 1 },
+  { jam: '06-07', berat: 1616, truk: 19, lori: 0, total: 19, pemasukan: 0 },
+  { jam: '07-08', berat: 1658, truk: 21, lori: 0, total: 21, pemasukan: 6 },
+  { jam: '08-09', berat: 1865, truk: 27, lori: 0, total: 27, pemasukan: 2 },
+  { jam: '09-10', berat: 2004, truk: 25, lori: 0, total: 25, pemasukan: 3 },
+  { jam: '10-11', berat: 1921, truk: 22, lori: 0, total: 22, pemasukan: 0 },
+  { jam: '11-12', berat: 1639, truk: 19, lori: 0, total: 19, pemasukan: 1 },
+  { jam: '12-13', berat: 2084, truk: 27, lori: 0, total: 27, pemasukan: 0 },
+  { jam: '13-14', berat: 1473, truk: 19, lori: 0, total: 19, pemasukan: 1 },
 ]
 
 const siangRows: DigilingRow[] = [
-  { jam: '14 - 15', berat: 1680, truk: 15, lori: 0, total: 15, pemasukan: 0 },
-  { jam: '15 - 16', berat: 1700, truk: 20, lori: 0, total: 20, pemasukan: 2 },
-  { jam: '16 - 17', berat: 1567, truk: 18, lori: 0, total: 18, pemasukan: 0 },
-  { jam: '17 - 18', berat: 1597, truk: 18, lori: 0, total: 18, pemasukan: 0 },
-  { jam: '18 - 19', berat: 2118, truk: 17, lori: 0, total: 17, pemasukan: 0 },
-  { jam: '19 - 20', berat: 676, truk: 4, lori: 0, total: 4, pemasukan: 0 },
-  { jam: '20 - 21', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
-  { jam: '21 - 22', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '14-15', berat: 1680, truk: 15, lori: 0, total: 15, pemasukan: 0 },
+  { jam: '15-16', berat: 1700, truk: 20, lori: 0, total: 20, pemasukan: 2 },
+  { jam: '16-17', berat: 1567, truk: 18, lori: 0, total: 18, pemasukan: 0 },
+  { jam: '17-18', berat: 1597, truk: 18, lori: 0, total: 18, pemasukan: 0 },
+  { jam: '18-19', berat: 2118, truk: 17, lori: 0, total: 17, pemasukan: 0 },
+  { jam: '19-20', berat: 676, truk: 4, lori: 0, total: 4, pemasukan: 0 },
+  { jam: '20-21', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '21-22', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
 ]
 
 const malamRows: DigilingRow[] = [
-  { jam: '22 - 23', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
-  { jam: '23 - 00', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
-  { jam: '00 - 01', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
-  { jam: '01 - 02', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
-  { jam: '02 - 03', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
-  { jam: '03 - 04', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
-  { jam: '04 - 05', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
-  { jam: '05 - 06', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '22-23', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '23-00', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '00-01', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '01-02', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '02-03', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '03-04', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '04-05', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '05-06', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
 ]
 
 const maxRows = Math.max(pagiRows.length, siangRows.length, malamRows.length)
@@ -214,7 +214,7 @@ function shiftClass(shift: ShiftKey, part: 'group' | 'head' | 'cell' | 'total') 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4">
         <div class="h-1 w-full rounded-full bg-gradient-to-r from-sky-500 via-indigo-500 to-fuchsia-500 shadow-[0_0_10px_rgba(99,102,241,0.45)] mb-3"></div>
-        <h3 class="text-base font-extrabold text-gray-900 dark:text-white mb-2">Tebu Digiling Hari Ini</h3>
+        <h3 class="text-base font-extrabold text-gray-900 dark:text-white mb-2 ps-2">Tebu Digiling Hari Ini</h3>
         <div class="grid grid-cols-3 gap-2 text-sm">
           <div class="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2 text-center">
             <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Ku</p>
@@ -233,7 +233,7 @@ function shiftClass(shift: ShiftKey, part: 'group' | 'head' | 'cell' | 'total') 
 
       <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4">
         <div class="h-1 w-full rounded-full bg-gradient-to-r from-sky-500 via-indigo-500 to-fuchsia-500 shadow-[0_0_10px_rgba(99,102,241,0.45)] mb-3"></div>
-        <h3 class="text-base font-extrabold text-gray-900 dark:text-white mb-2">Total Tebu Digiling Sampai Hari Ini</h3>
+        <h3 class="text-base font-extrabold text-gray-900 dark:text-white mb-2 ps-2">Total Tebu Digiling Sampai Hari Ini</h3>
         <div class="grid grid-cols-3 gap-2 text-sm">
           <div class="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2 text-center">
             <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Ku</p>

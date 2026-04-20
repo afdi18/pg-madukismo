@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import VueApexCharts from 'vue3-apexcharts'
+import DataDigiling from '@/views/Operasional/DataDigiling.vue'
 import {
   PackageIcon, DropletIcon, TrendingUpIcon,
   CalendarIcon, RefreshCwIcon, LayersIcon,
@@ -209,7 +210,7 @@ const perbandinganSeries = computed(() => [
 
 <template>
   <div class="space-y-6">
-
+    <div v-if="false">
     <!-- ============================================================
          HEADER
     ============================================================ -->
@@ -476,6 +477,23 @@ const perbandinganSeries = computed(() => [
         </div>
       </div>
 
+    </div>
+    </div>
+
+    <!-- ============================================================
+         DATA TEBU DIGILING (dipindah dari menu Operasional)
+    ============================================================ -->
+    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 sm:p-5">
+      <div class="mb-4">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+          Data Tebu Digiling
+        </h3>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+          Monitoring tebu digiling per jam
+        </p>
+      </div>
+
+      <DataDigiling />
     </div>
 
   </div>
