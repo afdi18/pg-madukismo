@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useTheme } from '@/composables/useTheme'
 import { useFullscreen } from '@/composables/useFullscreen'
 import {
-  LayoutDashboardIcon, MapIcon, LeafIcon, FlaskConicalIcon,
+  LayoutDashboardIcon, MapIcon, FlaskConicalIcon,
   FactoryIcon,
   UsersIcon, ChevronDownIcon, BellIcon, MoonIcon, SunIcon,
   MaximizeIcon, MinimizeIcon, LogOutIcon, UserIcon,
@@ -55,23 +55,11 @@ const navItems = computed<NavItem[]>(() => [
         label: 'Dashboard',
         icon: LayoutDashboardIcon,
         permission: 'dashboard.view',
-    children: [
-      { label: 'Informasi Tebu', path: '/dashboard/informasi-tebu' },
-      { label: 'Monitoring Pabrik', path: '/dashboard/monitoring-pabrik' },
-      { label: 'Angka Pengawasan QA', path: '/dashboard/pengawasan-qa' },
-    ],
-    },
-    {
-        label: 'Data Tanaman',
-        icon: LeafIcon,
-        path: '/tanaman',
-        permission: 'tanaman.view',
-    },
-    {
-        label: 'Peta Kebun',
-        icon: MapIcon,
-        path: '/peta-kebun',
-        permission: 'peta_kebun.view',
+        children: [
+          { label: 'Informasi Tebu', path: '/dashboard/informasi-tebu' },
+          { label: 'Monitoring Pabrik', path: '/dashboard/monitoring-pabrik' },
+          { label: 'Angka Pengawasan QA', path: '/dashboard/pengawasan-qa' },
+        ],
     },
     {
       label: 'Penerimaan Tebu',
@@ -99,6 +87,12 @@ const navItems = computed<NavItem[]>(() => [
             { label: 'Pabrik Gula',    path: '/lab-qa' },
             { label: 'Pabrik Alkohol', path: '/lab-qa/alkohol' },
         ],
+    },
+   {
+        label: 'Peta Kebun',
+        icon: MapIcon,
+        path: '/peta-kebun',
+        permission: 'peta_kebun.view',
     },
 ])
 

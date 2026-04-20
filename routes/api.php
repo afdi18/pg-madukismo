@@ -51,22 +51,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
          ->middleware(AbacMiddleware::class . ':dashboard.export')
          ->name('dashboard.export');
 
-    // ============================================================
-    // DATA TANAMAN PRODUKSI (SQL Server - read & write)
-    // ============================================================
-    Route::prefix('tanaman')->group(function () {
-        Route::get('/',      [\App\Http\Controllers\Api\TanamanController::class, 'index'])
-             ->middleware(AbacMiddleware::class . ':tanaman.view');
-        Route::get('/{id}',  [\App\Http\Controllers\Api\TanamanController::class, 'show'])
-             ->middleware(AbacMiddleware::class . ':tanaman.view');
-        Route::post('/',     [\App\Http\Controllers\Api\TanamanController::class, 'store'])
-             ->middleware(AbacMiddleware::class . ':tanaman.create');
-        Route::put('/{id}',  [\App\Http\Controllers\Api\TanamanController::class, 'update'])
-             ->middleware(AbacMiddleware::class . ':tanaman.update');
-        Route::delete('/{id}', [\App\Http\Controllers\Api\TanamanController::class, 'destroy'])
-             ->middleware(AbacMiddleware::class . ':tanaman.delete');
-    });
-
      // ============================================================
      // PENERIMAAN (SQL Server - TBL_MASTSPA)
      // ============================================================

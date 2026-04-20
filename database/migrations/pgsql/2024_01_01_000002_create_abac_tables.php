@@ -28,10 +28,10 @@ return new class extends Migration
         // ============================================================
         Schema::connection('pgsql')->create('permissions', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100)->unique()->comment('e.g. tanaman.view, lab_qa.approve');
+            $table->string('name', 100)->unique()->comment('e.g. dashboard.view, lab_qa.approve');
             $table->string('display_name', 150);
             $table->text('description')->nullable();
-            $table->string('group', 50)->comment('Modul: Dashboard, Tanaman, Peta Kebun, dll');
+            $table->string('group', 50)->comment('Modul: Dashboard, Peta Kebun, Lab QA, dll');
             $table->timestamps();
         });
 
@@ -91,8 +91,8 @@ return new class extends Migration
         Schema::connection('pgsql')->create('activity_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->string('action', 100)->comment('e.g. login, create_user, update_tanaman');
-            $table->string('module', 50)->comment('Dashboard, Tanaman, PetaKebun, LabQA, User');
+            $table->string('action', 100)->comment('e.g. login, create_user, update_lab_qa');
+            $table->string('module', 50)->comment('Dashboard, PetaKebun, LabQA, User');
             $table->text('description')->nullable();
             $table->json('old_values')->nullable();
             $table->json('new_values')->nullable();

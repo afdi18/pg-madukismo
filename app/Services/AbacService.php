@@ -27,7 +27,7 @@ class AbacService
      * Periksa apakah user dapat melakukan aksi tertentu.
      *
      * @param User   $user       User yang mengakses
-     * @param string $permission Permission yang dibutuhkan (e.g. 'tanaman.view')
+        * @param string $permission Permission yang dibutuhkan (e.g. 'dashboard.view')
      * @param array  $context    Konteks resource (optional, untuk fine-grained access)
      */
     public function can(User $user, string $permission, array $context = []): bool
@@ -66,7 +66,6 @@ class AbacService
         return match(true) {
             str_starts_with($permission, 'peta_kebun') => $this->checkKebunPolicy($user, $userAttrs, $context),
             str_starts_with($permission, 'lab_qa')     => $this->checkLabQaPolicy($user, $userAttrs, $context),
-            str_starts_with($permission, 'tanaman')    => $this->checkTanamanPolicy($user, $userAttrs, $context),
             default                                    => true,
         };
     }
@@ -100,19 +99,6 @@ class AbacService
         // Approve hanya untuk role Supervisor ke atas
         if (str_ends_with($context['action'] ?? '', '.approve')) {
             return $user->hasRole('Supervisor') || $user->hasRole('Manajer') || $user->isAdministrator();
-        }
-
-        return true;
-    }
-
-    /**
-     * Policy akses Data Tanaman — berdasarkan divisi.
-     */
-    protected function checkTanamanPolicy(User $user, array $attrs, array $context): bool
-    {
-        // Delete hanya untuk Manajer ke atas
-        if (str_ends_with($permission ?? '', '.delete')) {
-            return $user->hasRole('Manajer') || $user->isAdministrator();
         }
 
         return true;

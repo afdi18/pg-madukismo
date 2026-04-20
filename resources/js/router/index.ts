@@ -78,17 +78,6 @@ const router = createRouter({
                     },
                 },
 
-                // Data Tanaman
-                {
-                    path: 'tanaman',
-                    name: 'Tanaman',
-                    component: () => import('@/views/Tanaman/Index.vue'),
-                    meta: {
-                        title: 'Data Tanaman',
-                        permission: 'tanaman.view',
-                    },
-                },
-
                 // Lab QA — Pabrik Gula
                 {
                     path: 'lab-qa',

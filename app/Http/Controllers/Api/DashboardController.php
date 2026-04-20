@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sqlsrv\TanamanProduksi;
 use App\Models\Sqlsrv\RendemenHarian;
 use App\Models\Sqlsrv\KpiOperasional;
 use App\Models\Sqlsrv\RingkasanMusim;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {

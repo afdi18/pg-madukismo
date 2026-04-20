@@ -151,7 +151,7 @@ php artisan serve
 | Administrator | Semua fitur + manajemen user                             |
 | Manajer       | Baca semua data + export. Tidak bisa kelola user         |
 | Supervisor    | Input + update data + approve Lab QA                     |
-| Operator      | Input + update data tanaman, kebun, lab                  |
+| Operator      | Input + update data kebun, lab, penerimaan, operasional  |
 | Viewer        | Baca saja (read-only) semua modul                        |
 
 ### Atribut ABAC:

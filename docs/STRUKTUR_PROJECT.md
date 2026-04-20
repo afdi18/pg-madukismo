@@ -12,7 +12,6 @@ pg-madukismo/
 │   │   │   │   └── AuthenticatedSessionController.php
 │   │   │   ├── Api/
 │   │   │   │   ├── DashboardController.php     (SQL Server)
-│   │   │   │   ├── TanamanController.php       (SQL Server)
 │   │   │   │   ├── PetaKebunController.php     (PostgreSQL)
 │   │   │   │   ├── LabQaController.php         (PostgreSQL)
 │   │   │   │   └── UserManagementController.php(PostgreSQL)
@@ -29,8 +28,8 @@ pg-madukismo/
 │   │   │   ├── KebunPeta.php
 │   │   │   └── LabQa.php
 │   │   └── sqlsrv/                    # Models SQL Server
-│   │       ├── TanamanProduksi.php
-│   │       ├── DataRendemen.php
+│   │       ├── RendemenHarian.php
+│   │       ├── RingkasanMusim.php
 │   │       └── KpiOperasional.php
 │   └── Services/
 │       ├── AbacService.php            # Logic ABAC
@@ -68,7 +67,9 @@ pg-madukismo/
 │   │   │   ├── Auth/
 │   │   │   │   └── Login.vue          # Login username+pass
 │   │   │   ├── Dashboard/
-│   │   │   │   └── Index.vue          # Dashboard tanaman
+│   │   │   │   ├── Index.vue          # Dashboard utama
+│   │   │   │   ├── InformasiTebu.vue
+│   │   │   │   └── MonitoringPabrik.vue
 │   │   │   ├── PetaKebun/
 │   │   │   │   └── Index.vue          # Leaflet GIS
 │   │   │   ├── LabQa/

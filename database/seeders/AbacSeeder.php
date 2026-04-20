@@ -57,7 +57,7 @@ class AbacSeeder extends Seeder
                 [
                     'name'         => 'Operator',
                     'display_name' => 'Operator',
-                    'description'  => 'Akses input dan update data tanaman, kebun, dan lab.',
+                    'description'  => 'Akses input dan update data kebun, lab, penerimaan, dan operasional pabrik.',
                     'is_system'    => false,
                     'color'        => 'green',
                 ],

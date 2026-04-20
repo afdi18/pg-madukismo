@@ -15,8 +15,8 @@ class AbacMiddleware
      * Handle incoming request dengan ABAC check.
      *
      * Cara pakai di route:
-     *   ->middleware('abac:tanaman.view')
-     *   ->middleware('abac:tanaman.create,tanaman.update')
+      *   ->middleware('abac:dashboard.view')
+      *   ->middleware('abac:lab_qa.create,lab_qa.update')
      */
     public function handle(Request $request, Closure $next, string ...$permissions): Response
     {

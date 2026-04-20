@@ -5,19 +5,10 @@ namespace App\Enums;
 enum Permission: string
 {
     // ================================================================
-    // DASHBOARD TANAMAN (SQL Server)
+    // DASHBOARD & MONITORING
     // ================================================================
     case DASHBOARD_VIEW           = 'dashboard.view';
     case DASHBOARD_EXPORT         = 'dashboard.export';
-
-    // ================================================================
-    // TANAMAN PRODUKSI (SQL Server)
-    // ================================================================
-    case TANAMAN_VIEW             = 'tanaman.view';
-    case TANAMAN_CREATE           = 'tanaman.create';
-    case TANAMAN_UPDATE           = 'tanaman.update';
-    case TANAMAN_DELETE           = 'tanaman.delete';
-    case TANAMAN_EXPORT           = 'tanaman.export';
 
     // ================================================================
     // PETA KEBUN (PostgreSQL)
@@ -89,11 +80,6 @@ enum Permission: string
         return match($this) {
             self::DASHBOARD_VIEW           => 'Lihat Dashboard',
             self::DASHBOARD_EXPORT         => 'Export Dashboard',
-            self::TANAMAN_VIEW             => 'Lihat Data Tanaman',
-            self::TANAMAN_CREATE           => 'Tambah Data Tanaman',
-            self::TANAMAN_UPDATE           => 'Edit Data Tanaman',
-            self::TANAMAN_DELETE           => 'Hapus Data Tanaman',
-            self::TANAMAN_EXPORT           => 'Export Data Tanaman',
             self::PETA_KEBUN_VIEW          => 'Lihat Peta Kebun',
             self::PETA_KEBUN_CREATE        => 'Tambah Peta Kebun',
             self::PETA_KEBUN_UPDATE        => 'Edit Peta Kebun',
@@ -138,7 +124,6 @@ enum Permission: string
     {
         return match(true) {
             str_starts_with($this->value, 'dashboard')  => 'Dashboard',
-            str_starts_with($this->value, 'tanaman')    => 'Data Tanaman',
             str_starts_with($this->value, 'peta_kebun') => 'Peta Kebun',
             str_starts_with($this->value, 'lab_qa')     => 'Lab QA',
             str_starts_with($this->value, 'penerimaan') => 'Penerimaan Tebu',
@@ -166,8 +151,6 @@ enum Permission: string
         return [
             self::DASHBOARD_VIEW->value,
             self::DASHBOARD_EXPORT->value,
-            self::TANAMAN_VIEW->value,
-            self::TANAMAN_EXPORT->value,
             self::PETA_KEBUN_VIEW->value,
             self::LAB_QA_VIEW->value,
             self::LAB_QA_EXPORT->value,
@@ -185,9 +168,6 @@ enum Permission: string
     {
         return [
             self::DASHBOARD_VIEW->value,
-            self::TANAMAN_VIEW->value,
-            self::TANAMAN_CREATE->value,
-            self::TANAMAN_UPDATE->value,
             self::PETA_KEBUN_VIEW->value,
             self::LAB_QA_VIEW->value,
             self::LAB_QA_CREATE->value,
@@ -208,7 +188,6 @@ enum Permission: string
     {
         return [
             self::DASHBOARD_VIEW->value,
-            self::TANAMAN_VIEW->value,
             self::PETA_KEBUN_VIEW->value,
             self::LAB_QA_VIEW->value,
             self::PENERIMAAN_VIEW->value,

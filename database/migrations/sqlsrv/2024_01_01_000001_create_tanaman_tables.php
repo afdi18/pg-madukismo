@@ -45,31 +45,6 @@ return new class extends Migration
     public function up(): void
     {
         // ============================================================
-        // DATA PRODUKSI TANAMAN (Utama Dashboard)
-        // ============================================================
-        Schema::connection('sqlsrv')->create('tanaman_produksi', function (Blueprint $table) {
-            $table->id();
-            $table->string('kode_kebun', 20)->comment('Referensi kode kebun dari PostgreSQL');
-            $table->integer('musim_tanam')->comment('Tahun musim tanam: 2024, 2025, dst');
-            $table->date('tanggal_input');
-            $table->decimal('tonase_tebang', 12, 2)->default(0)->comment('Tonase tebu ditebang (ton)');
-            $table->decimal('tonase_giling', 12, 2)->default(0)->comment('Tonase masuk gilingan (ton)');
-            $table->decimal('rendemen_kebun', 5, 2)->default(0)->comment('Rendemen dari kebun (%)');
-            $table->decimal('hasil_gula', 12, 2)->default(0)->comment('Hasil gula (ton)');
-            $table->decimal('hablur', 5, 2)->default(0)->comment('Hablur/kristal gula (%)');
-            $table->string('varietas', 50)->nullable();
-            $table->string('jenis_tebangan', 30)->nullable()->comment('Mekanis, Manual');
-            $table->string('status_input', 20)->default('draft')->comment('draft, final, dikoreksi');
-            $table->unsignedBigInteger('input_by')->nullable()->comment('ID user dari PostgreSQL');
-            $table->text('keterangan')->nullable();
-            $table->timestamps();
-
-            $table->index(['kode_kebun', 'musim_tanam']);
-            $table->index('tanggal_input');
-            $table->index('musim_tanam');
-        });
-
-        // ============================================================
         // DATA RENDEMEN HARIAN
         // ============================================================
         Schema::connection('sqlsrv')->create('rendemen_harian', function (Blueprint $table) {
@@ -144,6 +119,5 @@ return new class extends Migration
         $this->dropTableSafe('ringkasan_musim');
         $this->dropTableSafe('kpi_operasional');
         $this->dropTableSafe('rendemen_harian');
-        $this->dropTableSafe('tanaman_produksi');
     }
 };
