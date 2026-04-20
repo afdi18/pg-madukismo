@@ -14,12 +14,14 @@ const toast = useToast()
 // edit device modal
 const showEditModal = ref(false)
 const editingDevice = ref<any | null>(null)
+const editPosId = ref<number | null>(null)
 const editMeter = ref<number | null>(null)
 const editHari = ref<number | null>(null)
 const editSaving = ref(false)
 
 function openEdit(device: any) {
   editingDevice.value = device
+  editPosId.value = device.ID_POS != null && device.ID_POS !== '' ? Number(device.ID_POS) : null
   editMeter.value = device.METER_JARAK_MAKS != null ? Number(device.METER_JARAK_MAKS) : null
   editHari.value = device.HARI_EXPIRED_SPA != null ? Number(device.HARI_EXPIRED_SPA) : null
   showEditModal.value = true
@@ -28,6 +30,7 @@ function openEdit(device: any) {
 function closeEdit() {
   showEditModal.value = false
   editingDevice.value = null
+  editPosId.value = null
 }
 
 async function saveDeviceEdit() {
@@ -35,6 +38,7 @@ async function saveDeviceEdit() {
   editSaving.value = true
   try {
     const payload: any = {
+      id_pos: editPosId.value,
       meter_jarak_maks: editMeter.value,
       hari_expired_spa: editHari.value,
     }
@@ -356,6 +360,15 @@ async function copyCoords(p: any) {
 
     <div class="p-6">
       <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="text-sm text-gray-600">POS Perangkat</label>
+          <select v-model.number="editPosId" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800">
+            <option :value="null">-- Pilih POS --</option>
+            <option v-for="p in posList" :key="p.IDPOS" :value="Number(p.IDPOS)">
+              {{ p.NMPOS }} (ID: {{ p.IDPOS }})
+            </option>
+          </select>
+        </div>
         <div>
           <label class="text-sm text-gray-600">Maks Jarak (meter)</label>
           <input type="number" v-model.number="editMeter" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800" />

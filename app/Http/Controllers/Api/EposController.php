@@ -148,13 +148,17 @@ class EposController extends Controller
         }
     }
 
-    // Update device settings: METER_JARAK_MAKS and HARI_EXPIRED_SPA
+    // Update device settings: ID_POS, METER_JARAK_MAKS, and HARI_EXPIRED_SPA
     public function updateDevice(Request $request, $idDevice)
     {
+        $idPos = $request->input('id_pos', null);
         $meter = $request->input('meter_jarak_maks', null);
         $hari = $request->input('hari_expired_spa', null);
 
         // basic validation
+        if ($idPos !== null && $idPos !== '' && !is_numeric($idPos)) {
+            return response()->json(['error' => 'id_pos must be numeric'], 422);
+        }
         if ($meter !== null && !is_numeric($meter)) {
             return response()->json(['error' => 'meter_jarak_maks must be numeric'], 422);
         }
@@ -162,15 +166,22 @@ class EposController extends Controller
             return response()->json(['error' => 'hari_expired_spa must be numeric'], 422);
         }
 
+        if ($idPos === '') {
+            $idPos = null;
+        }
+
         try {
             $updated = DB::connection('sqlsrv')->update(
-                "UPDATE [dbo].[TBL_DEVICE_EPOS] SET METER_JARAK_MAKS = ?, HARI_EXPIRED_SPA = ? WHERE ID_DEVICE = ?",
-                [$meter, $hari, $idDevice]
+                "UPDATE [dbo].[TBL_DEVICE_EPOS] SET ID_POS = ?, METER_JARAK_MAKS = ?, HARI_EXPIRED_SPA = ? WHERE ID_DEVICE = ?",
+                [$idPos, $meter, $hari, $idDevice]
             );
 
             if ($updated) {
                 $row = DB::connection('sqlsrv')->selectOne(
-                    "SELECT KODE_DEVICE,GMAIL,ID_DEVICE,ID_POS,METER_JARAK_MAKS,AKTIF,HARI_EXPIRED_SPA FROM [dbo].[TBL_DEVICE_EPOS] WHERE ID_DEVICE = ?",
+                    "SELECT a.KODE_DEVICE,a.GMAIL,a.ID_DEVICE,a.ID_POS,b.NMPOS,a.METER_JARAK_MAKS,a.AKTIF,a.HARI_EXPIRED_SPA
+                     FROM [dbo].[TBL_DEVICE_EPOS] AS a
+                     LEFT JOIN [dbo].[TBL_POS_PANTAU] AS b ON a.ID_POS = b.IDPOS
+                     WHERE a.ID_DEVICE = ?",
                     [$idDevice]
                 );
                 if ($row) {
