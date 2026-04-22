@@ -57,6 +57,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
      Route::prefix('penerimaan')->group(function () {
           Route::get('/', [\App\Http\Controllers\Api\PenerimaanController::class, 'index'])
                 ->middleware(AbacMiddleware::class . ':penerimaan.view');
+              Route::get('/antrian-lori', [\App\Http\Controllers\Api\PenerimaanController::class, 'antrianLori'])
+                   ->middleware(AbacMiddleware::class . ':penerimaan.view');
+              Route::get('/antrian-truk-sudah-timbang', [\App\Http\Controllers\Api\PenerimaanController::class, 'antrianTrukSudahTimbang'])
+                   ->middleware(AbacMiddleware::class . ':penerimaan.view');
+              Route::get('/antrian-truk-belum-timbang', [\App\Http\Controllers\Api\PenerimaanController::class, 'antrianTrukBelumTimbang'])
+                   ->middleware(AbacMiddleware::class . ':penerimaan.view');
      });
 
      // ============================================================

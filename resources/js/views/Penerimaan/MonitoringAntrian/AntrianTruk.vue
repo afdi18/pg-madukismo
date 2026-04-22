@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import axios from 'axios'
 
 type QueueRow = {
   id: number
@@ -11,72 +12,129 @@ type QueueRow = {
   tglMasuk: string
   jamMasuk: string
   lamaTinggal: string
+  lamaJam: number
 }
 
-const sudahTimbangRows = ref<QueueRow[]>([
-  {
-    id: 1,
-    spa: '21000001',
-    noTruk: 'AB 8123 MD',
-    induk: '028018',
-    petani: 'Sutrisno',
-    kebun: 'Kebun Utara',
-    tglMasuk: '13/04/2026',
-    jamMasuk: '06:12',
-    lamaTinggal: '01:42',
-  },
-  {
-    id: 2,
-    spa: '21000002',
-    noTruk: 'AB 9345 MK',
-    induk: '028019',
-    petani: 'Wahyudi',
-    kebun: 'Kebun Timur',
-    tglMasuk: '13/04/2026',
-    jamMasuk: '06:35',
-    lamaTinggal: '01:20',
-  },
-])
+const sudahTimbangRows = ref<QueueRow[]>([])
 
-const belumTimbangRows = ref<QueueRow[]>([
-  {
-    id: 1,
-    spa: '21000003',
-    noTruk: 'AB 7689 ML',
-    induk: '00035',
-    petani: 'Slamet Riyadi',
-    kebun: 'Kebun Barat',
-    tglMasuk: '13/04/2026',
-    jamMasuk: '07:10',
-    lamaTinggal: '00:58',
-  },
-  {
-    id: 2,
-    spa: '21000004',
-    noTruk: 'AB 5467 MA',
-    induk: '02818',
-    petani: 'Paijo',
-    kebun: 'Kebun Selatan',
-    tglMasuk: '13/04/2026',
-    jamMasuk: '07:24',
-    lamaTinggal: '00:43',
-  },
-  {
-    id: 3,
-    spa: '21000005',
-    noTruk: 'AB 4512 MZ',
-    induk: '00035',
-    petani: 'Suratman',
-    kebun: 'Kebun Tengah',
-    tglMasuk: '13/04/2026',
-    jamMasuk: '07:31',
-    lamaTinggal: '00:37',
-  },
-])
+const belumTimbangRows = ref<QueueRow[]>([])
+const initialLoading = ref(false)
+const initialLoadingBelum = ref(false)
+const errorMessage = ref('')
+const errorMessageBelum = ref('')
+const sortLamaSudah = ref<'asc' | 'desc'>('desc')
+const sortLamaBelum = ref<'asc' | 'desc'>('desc')
+let refreshTimer: ReturnType<typeof setInterval> | null = null
+
+async function loadAntrianTrukSudahTimbang(isBackgroundRefresh = false) {
+  if (!isBackgroundRefresh) {
+    initialLoading.value = true
+  }
+
+  try {
+    const { data } = await axios.get('/api/penerimaan/antrian-truk-sudah-timbang')
+    const rows = Array.isArray(data?.data) ? data.data : []
+
+    sudahTimbangRows.value = rows.map((row: any, index: number) => ({
+      id: index + 1,
+      spa: row.spa ?? '-',
+      noTruk: String(row.nopol ?? '-').toUpperCase(),
+      induk: row.induk ?? '-',
+      petani: row.petani ?? '-',
+      kebun: row.kebun ?? '-',
+      tglMasuk: row.tgl_msk ?? '-',
+      jamMasuk: row.jam_msk != null ? String(row.jam_msk).slice(0, 8) : '-',
+      lamaTinggal: row.lama != null ? `${row.lama} Jam` : '-',
+      lamaJam: Number(row.lama ?? 0),
+    }))
+    errorMessage.value = ''
+  } catch (error: any) {
+    console.error(error)
+    errorMessage.value = error?.response?.data?.error || error?.message || 'Gagal memuat data antrian truk sudah timbang'
+    if (!isBackgroundRefresh) {
+      sudahTimbangRows.value = []
+    }
+  } finally {
+    if (!isBackgroundRefresh) {
+      initialLoading.value = false
+    }
+  }
+}
+
+async function loadAntrianTrukBelumTimbang(isBackgroundRefresh = false) {
+  if (!isBackgroundRefresh) {
+    initialLoadingBelum.value = true
+  }
+
+  try {
+    const { data } = await axios.get('/api/penerimaan/antrian-truk-belum-timbang')
+    const rows = Array.isArray(data?.data) ? data.data : []
+
+    belumTimbangRows.value = rows.map((row: any, index: number) => ({
+      id: index + 1,
+      spa: row.spa ?? '-',
+      noTruk: String(row.nopol ?? '-').toUpperCase(),
+      induk: row.induk ?? '-',
+      petani: row.petani ?? '-',
+      kebun: row.kebun ?? '-',
+      tglMasuk: row.tgl_msk ?? '-',
+      jamMasuk: row.jam_msk != null ? String(row.jam_msk).slice(0, 8) : '-',
+      lamaTinggal: row.lama != null ? `${row.lama} Jam` : '-',
+      lamaJam: Number(row.lama ?? 0),
+    }))
+    errorMessageBelum.value = ''
+  } catch (error: any) {
+    console.error(error)
+    errorMessageBelum.value = error?.response?.data?.error || error?.message || 'Gagal memuat data antrian truk belum timbang'
+    if (!isBackgroundRefresh) {
+      belumTimbangRows.value = []
+    }
+  } finally {
+    if (!isBackgroundRefresh) {
+      initialLoadingBelum.value = false
+    }
+  }
+}
 
 const totalSudah = computed(() => sudahTimbangRows.value.length)
 const totalBelum = computed(() => belumTimbangRows.value.length)
 const totalSemua = computed(() => totalSudah.value + totalBelum.value)
+
+const sortedSudahRows = computed(() => {
+  const rows = [...sudahTimbangRows.value]
+  rows.sort((a, b) => sortLamaSudah.value === 'asc' ? a.lamaJam - b.lamaJam : b.lamaJam - a.lamaJam)
+  return rows
+})
+
+const sortedBelumRows = computed(() => {
+  const rows = [...belumTimbangRows.value]
+  rows.sort((a, b) => sortLamaBelum.value === 'asc' ? a.lamaJam - b.lamaJam : b.lamaJam - a.lamaJam)
+  return rows
+})
+
+function toggleSortLamaSudah() {
+  sortLamaSudah.value = sortLamaSudah.value === 'asc' ? 'desc' : 'asc'
+}
+
+function toggleSortLamaBelum() {
+  sortLamaBelum.value = sortLamaBelum.value === 'asc' ? 'desc' : 'asc'
+}
+
+onMounted(() => {
+  loadAntrianTrukSudahTimbang(false)
+  loadAntrianTrukBelumTimbang(false)
+  refreshTimer = setInterval(() => {
+    loadAntrianTrukSudahTimbang(true)
+    loadAntrianTrukBelumTimbang(true)
+  }, 30000)
+})
+
+onBeforeUnmount(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+    refreshTimer = null
+  }
+})
 </script>
 
 <template>
@@ -98,23 +156,42 @@ const totalSemua = computed(() => totalSudah.value + totalBelum.value)
 
     <section class="space-y-2">
       <h2 class="text-center text-lg font-bold text-gray-800 dark:text-white">ANTRIAN TRUK SUDAH TIMBANG 1</h2>
-      <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-        <table class="w-full text-sm text-gray-700 dark:text-slate-100">
+      <div class="max-h-[460px] overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <table class="min-w-[1100px] w-full text-sm text-gray-700 dark:text-slate-100">
           <thead class="bg-gray-100 dark:bg-gray-800">
             <tr class="text-gray-700 dark:text-white">
-              <th class="px-3 py-2 text-center">No</th>
-              <th class="px-3 py-2 text-left">SPA</th>
-              <th class="px-3 py-2 text-left">No Truk</th>
-              <th class="px-3 py-2 text-left">Induk</th>
-              <th class="px-3 py-2 text-left">Petani</th>
-              <th class="px-3 py-2 text-left">Kebun</th>
-              <th class="px-3 py-2 text-center">Tgl Masuk</th>
-              <th class="px-3 py-2 text-center">Jam Masuk</th>
-              <th class="px-3 py-2 text-center">Jam Lama Tinggal</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">No</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">SPA</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">No Truk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Induk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Petani</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Kebun</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">Tgl Masuk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">Jam Masuk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">
+                <button @click="toggleSortLamaSudah" class="inline-flex items-center gap-1 font-medium">
+                  Jam Lama Tinggal
+                  <span>{{ sortLamaSudah === 'asc' ? '↑' : '↓' }}</span>
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody class="dark:text-slate-100">
-            <tr v-for="(row, index) in sudahTimbangRows" :key="`sudah-${row.id}`" class="border-t border-gray-100 dark:border-gray-800">
+            <tr v-if="initialLoading">
+              <td colspan="9" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Memuat data antrian truk...</td>
+            </tr>
+            <tr v-else-if="errorMessage && sudahTimbangRows.length === 0">
+              <td colspan="9" class="px-3 py-6 text-center text-red-600 dark:text-red-400">{{ errorMessage }}</td>
+            </tr>
+            <tr v-else-if="sudahTimbangRows.length === 0">
+              <td colspan="9" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Belum ada data antrian truk sudah timbang.</td>
+            </tr>
+            <tr
+              v-for="(row, index) in sortedSudahRows"
+              :key="`sudah-${row.id}`"
+              class="border-t border-gray-100 dark:border-gray-800"
+              :class="row.lamaJam > 36 ? 'text-red-600 dark:text-red-400 font-medium' : ''"
+            >
               <td class="px-3 py-2 text-center">{{ index + 1 }}</td>
               <td class="px-3 py-2">{{ row.spa }}</td>
               <td class="px-3 py-2">{{ row.noTruk }}</td>
@@ -132,23 +209,42 @@ const totalSemua = computed(() => totalSudah.value + totalBelum.value)
 
     <section class="space-y-2">
       <h2 class="text-center text-lg font-bold text-gray-800 dark:text-white">ANTRIAN TRUK BELUM TIMBANG 1</h2>
-      <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-        <table class="w-full text-sm text-gray-700 dark:text-slate-100">
+      <div class="max-h-[460px] overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <table class="min-w-[1100px] w-full text-sm text-gray-700 dark:text-slate-100">
           <thead class="bg-gray-100 dark:bg-gray-800">
             <tr class="text-gray-700 dark:text-white">
-              <th class="px-3 py-2 text-center">No</th>
-              <th class="px-3 py-2 text-left">SPA</th>
-              <th class="px-3 py-2 text-left">No Truk</th>
-              <th class="px-3 py-2 text-left">Induk</th>
-              <th class="px-3 py-2 text-left">Petani</th>
-              <th class="px-3 py-2 text-left">Kebun</th>
-              <th class="px-3 py-2 text-center">Tgl Masuk</th>
-              <th class="px-3 py-2 text-center">Jam Masuk</th>
-              <th class="px-3 py-2 text-center">Jam Lama Tinggal</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">No</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">SPA</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">No Truk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Induk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Petani</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Kebun</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">Tgl Masuk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">Jam Masuk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">
+                <button @click="toggleSortLamaBelum" class="inline-flex items-center gap-1 font-medium">
+                  Jam Lama Tinggal
+                  <span>{{ sortLamaBelum === 'asc' ? '↑' : '↓' }}</span>
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody class="dark:text-slate-100">
-            <tr v-for="(row, index) in belumTimbangRows" :key="`belum-${row.id}`" class="border-t border-gray-100 dark:border-gray-800">
+            <tr v-if="initialLoadingBelum">
+              <td colspan="9" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Memuat data antrian truk...</td>
+            </tr>
+            <tr v-else-if="errorMessageBelum && belumTimbangRows.length === 0">
+              <td colspan="9" class="px-3 py-6 text-center text-red-600 dark:text-red-400">{{ errorMessageBelum }}</td>
+            </tr>
+            <tr v-else-if="belumTimbangRows.length === 0">
+              <td colspan="9" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Belum ada data antrian truk belum timbang.</td>
+            </tr>
+            <tr
+              v-for="(row, index) in sortedBelumRows"
+              :key="`belum-${row.id}`"
+              class="border-t border-gray-100 dark:border-gray-800"
+              :class="row.lamaJam > 36 ? 'text-red-600 dark:text-red-400 font-medium' : ''"
+            >
               <td class="px-3 py-2 text-center">{{ index + 1 }}</td>
               <td class="px-3 py-2">{{ row.spa }}</td>
               <td class="px-3 py-2">{{ row.noTruk }}</td>

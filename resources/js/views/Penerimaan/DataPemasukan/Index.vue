@@ -19,28 +19,17 @@ type PemasukanKebunRow = {
 const hariKe = ref(206)
 const kategori = ref('561 - TS I')
 
-const kebunRows: PemasukanKebunRow[] = [
-  { no: 1, register: '2.05.561.A.EI21', kelompok: '0', kebun: 'Sidorejo', luasHa: '1.334', taksasi: '937', hariIniRit: '0', hariIniBerat: '0', sdHariIniRit: '23', sdHariIniBerat: '1.214', produktivitas: '910', persentase: '97' },
-  { no: 2, register: '2.05.561.A.EI23', kelompok: '0', kebun: 'Brahu', luasHa: '1.950', taksasi: '904', hariIniRit: '0', hariIniBerat: '0', sdHariIniRit: '34', sdHariIniBerat: '2.001', produktivitas: '1.026', persentase: '113' },
-  { no: 3, register: '2.05.561.A.EI28', kelompok: '0', kebun: 'Sidorejo', luasHa: '2.005', taksasi: '882', hariIniRit: '0', hariIniBerat: '0', sdHariIniRit: '27', sdHariIniBerat: '1.658', produktivitas: '827', persentase: '94' },
-  { no: 4, register: '2.05.561.A.EI31', kelompok: '0', kebun: 'Dagangan', luasHa: '0.290', taksasi: '799', hariIniRit: '0', hariIniBerat: '0', sdHariIniRit: '4', sdHariIniBerat: '273', produktivitas: '941', persentase: '118' },
-  { no: 5, register: '2.06.561.A.EI90', kelompok: '0', kebun: 'Sidorejo', luasHa: '7.534', taksasi: '983', hariIniRit: '0', hariIniBerat: '0', sdHariIniRit: '104', sdHariIniBerat: '6.047', produktivitas: '803', persentase: '82' },
-  { no: 6, register: '2.08.561.A.EJ83', kelompok: '0', kebun: 'Kajang', luasHa: '3.640', taksasi: '929', hariIniRit: '0', hariIniBerat: '0', sdHariIniRit: '55', sdHariIniBerat: '3.080', produktivitas: '846', persentase: '91' },
-  { no: 137, register: '5.15.561.A.EL73', kelompok: '0', kebun: 'Lanud Iswahyudi', luasHa: '1.503', taksasi: '950', hariIniRit: '0', hariIniBerat: '0', sdHariIniRit: '29', sdHariIniBerat: '1.966', produktivitas: '1.308', persentase: '138' },
-  { no: 138, register: '5.15.561.A.EQ94', kelompok: '0', kebun: 'LANUD ISWAHYUDI', luasHa: '5.000', taksasi: '700', hariIniRit: '0', hariIniBerat: '0', sdHariIniRit: '55', sdHariIniBerat: '3.503', produktivitas: '701', persentase: '100' },
-  { no: 139, register: '5.16.561.A.FM18', kelompok: '0', kebun: 'Lanud Iswahyudi', luasHa: '1.606', taksasi: '905', hariIniRit: '0', hariIniBerat: '0', sdHariIniRit: '28', sdHariIniBerat: '1.456', produktivitas: '907', persentase: '100' },
-  { no: 140, register: '5.16.561.A.EM19', kelompok: '0', kebun: 'Tambran', luasHa: '6.047', taksasi: '1.050', hariIniRit: '0', hariIniBerat: '0', sdHariIniRit: '93', sdHariIniBerat: '6.175', produktivitas: '1.021', persentase: '97' },
-]
+const kebunRows: PemasukanKebunRow[] = []
 
 const totalRow = {
-  luasHa: '473.548',
-  taksasi: '861',
+  luasHa: '0',
+  taksasi: '0',
   hariIniRit: '0',
   hariIniBerat: '0',
-  sdHariIniRit: '6.352',
-  sdHariIniBerat: '398.372',
-  produktivitas: '841',
-  persentase: '98',
+  sdHariIniRit: '0',
+  sdHariIniBerat: '0',
+  produktivitas: '0',
+  persentase: '0',
 }
 </script>
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import axios from 'axios'
 
 type LoriRow = {
   id: number
@@ -14,46 +15,89 @@ type LoriRow = {
   tglMasuk: string
   jamMasuk: string
   lamaTinggal: string
+  lamaJam: number
 }
 
-const antrianLoriRows = ref<LoriRow[]>([
-  {
-    id: 1,
-    spa: '11000010',
-    noTruk: 'AB 8421 XX',
-    noLori: '0245',
-    berat: 84.5,
-    brtStlhRaf: 79.8,
-    induk: '02802',
-    petani: 'Suparman',
-    kebun: 'Kebun Barat 2',
-    tglMasuk: '13/04/2026',
-    jamMasuk: '05:42',
-    lamaTinggal: '02:14',
-  },
-  {
-    id: 2,
-    spa: '11000011',
-    noTruk: 'AB 7743 YY',
-    noLori: '0246',
-    berat: 80.2,
-    brtStlhRaf: 76.4,
-    induk: '02818',
-    petani: 'Sutopo',
-    kebun: 'Kebun Tengah 1',
-    tglMasuk: '13/04/2026',
-    jamMasuk: '06:03',
-    lamaTinggal: '01:53',
-  },
-])
+const antrianLoriRows = ref<LoriRow[]>([])
+const initialLoading = ref(false)
+const errorMessage = ref('')
+const sortLama = ref<'asc' | 'desc'>('desc')
+let refreshTimer: ReturnType<typeof setInterval> | null = null
+
+function formatNoLori(value: unknown): string {
+  if (value == null || value === '') return '-'
+  const asNumber = Number(value)
+  if (Number.isNaN(asNumber)) return '-'
+  return String(Math.trunc(asNumber)).padStart(4, '0')
+}
+
+async function loadAntrianLori(isBackgroundRefresh = false) {
+  if (!isBackgroundRefresh) {
+    initialLoading.value = true
+  }
+
+  try {
+    const { data } = await axios.get('/api/penerimaan/antrian-lori')
+    const rows = Array.isArray(data?.data) ? data.data : []
+
+    antrianLoriRows.value = rows.map((row: any, index: number) => ({
+      id: index + 1,
+      spa: row.spa ?? '-',
+      noTruk: String(row.nopol ?? '-').toUpperCase(),
+      noLori: formatNoLori(row.no_lori),
+      berat: Number(row.kw_netto ?? 0),
+      brtStlhRaf: Number(row.kw_netto ?? 0),
+      induk: row.induk ?? '-',
+      petani: row.petani ?? '-',
+      kebun: row.kebun ?? '-',
+      tglMasuk: row.tgl_msk ?? '-',
+      jamMasuk: row.jam_msk ?? '-',
+      lamaTinggal: row.lama != null ? `${row.lama} Jam` : '-',
+      lamaJam: Number(row.lama ?? 0),
+    }))
+    errorMessage.value = ''
+  } catch (error: any) {
+    console.error(error)
+    errorMessage.value = error?.response?.data?.error || error?.message || 'Gagal memuat data antrian lori'
+    if (!isBackgroundRefresh) {
+      antrianLoriRows.value = []
+    }
+  } finally {
+    if (!isBackgroundRefresh) {
+      initialLoading.value = false
+    }
+  }
+}
 
 const totalLori = computed(() => antrianLoriRows.value.length)
 const totalBeratLori = computed(() => antrianLoriRows.value.reduce((total, row) => total + row.berat, 0))
-const totalBeratLoriKuintal = computed(() => totalBeratLori.value * 10)
+const totalBeratLoriKuintal = computed(() => totalBeratLori.value)
+
+const sortedLoriRows = computed(() => {
+  const rows = [...antrianLoriRows.value]
+  rows.sort((a, b) => sortLama.value === 'asc' ? a.lamaJam - b.lamaJam : b.lamaJam - a.lamaJam)
+  return rows
+})
+
+function toggleSortLama() {
+  sortLama.value = sortLama.value === 'asc' ? 'desc' : 'asc'
+}
 
 function formatKuintal(value: number) {
   return Math.round(value).toLocaleString('id-ID')
 }
+
+onMounted(() => {
+  loadAntrianLori(false)
+  refreshTimer = setInterval(() => loadAntrianLori(true), 30000)
+})
+
+onBeforeUnmount(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+    refreshTimer = null
+  }
+})
 </script>
 
 <template>
@@ -71,26 +115,45 @@ function formatKuintal(value: number) {
 
     <section class="space-y-2">
       <h2 class="text-center text-lg font-bold text-gray-800 dark:text-white">ANTRIAN LORI</h2>
-      <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-        <table class="w-full text-sm min-w-[1200px] text-gray-700 dark:text-slate-100">
+      <div class="max-h-[460px] overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <table class="min-w-[1200px] w-full text-sm text-gray-700 dark:text-slate-100">
           <thead class="bg-gray-100 dark:bg-gray-800">
             <tr class="text-gray-700 dark:text-white">
-              <th class="px-3 py-2 text-center">No</th>
-              <th class="px-3 py-2 text-left">SPA</th>
-              <th class="px-3 py-2 text-left">No Truk</th>
-              <th class="px-3 py-2 text-left">No Lori</th>
-              <th class="px-3 py-2 text-right">Berat</th>
-              <th class="px-3 py-2 text-right">Brt Stlh Raf</th>
-              <th class="px-3 py-2 text-left">Induk</th>
-              <th class="px-3 py-2 text-left">Petani</th>
-              <th class="px-3 py-2 text-left">Kebun</th>
-              <th class="px-3 py-2 text-center">Tgl Masuk</th>
-              <th class="px-3 py-2 text-center">Jam Masuk</th>
-              <th class="px-3 py-2 text-center">Jam Lama Tinggal</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">No</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">SPA</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">No Truk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">No Lori</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-right dark:bg-gray-800">Berat</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-right dark:bg-gray-800">Brt Stlh Raf</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Induk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Petani</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Kebun</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">Tgl Masuk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">Jam Masuk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">
+                <button @click="toggleSortLama" class="inline-flex items-center gap-1 font-medium">
+                  Jam Lama Tinggal
+                  <span>{{ sortLama === 'asc' ? '↑' : '↓' }}</span>
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody class="dark:text-slate-100">
-            <tr v-for="(row, index) in antrianLoriRows" :key="`lori-${row.id}`" class="border-t border-gray-100 dark:border-gray-800">
+            <tr v-if="initialLoading">
+              <td colspan="12" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Memuat data antrian lori...</td>
+            </tr>
+            <tr v-else-if="errorMessage && antrianLoriRows.length === 0">
+              <td colspan="12" class="px-3 py-6 text-center text-red-600 dark:text-red-400">{{ errorMessage }}</td>
+            </tr>
+            <tr v-else-if="antrianLoriRows.length === 0">
+              <td colspan="12" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Belum ada data antrian lori.</td>
+            </tr>
+            <tr
+              v-for="(row, index) in sortedLoriRows"
+              :key="`lori-${row.id}`"
+              class="border-t border-gray-100 dark:border-gray-800"
+              :class="row.lamaJam > 36 ? 'text-red-600 dark:text-red-400 font-medium' : ''"
+            >
               <td class="px-3 py-2 text-center">{{ index + 1 }}</td>
               <td class="px-3 py-2">{{ row.spa }}</td>
               <td class="px-3 py-2">{{ row.noTruk }}</td>

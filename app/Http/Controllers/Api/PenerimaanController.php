@@ -102,4 +102,117 @@ class PenerimaanController extends Controller
 
         return response()->json($payload, 200, [], $jsonOptions);
     }
+
+    /**
+     * Return lori queue data from SQL Server using raw query.
+     */
+    public function antrianLori()
+    {
+        $sql = "
+            SELECT
+                spa,
+                nopol,
+                no_lori,
+                kw_netto,
+                a.induk,
+                b.petani,
+                b.kebun,
+                CONVERT(varchar, tgl_msk, 103) as tgl_msk,
+                CONVERT(varchar, CAST(tgl_msk as time), 108) as jam_msk,
+                DATEDIFF(HOUR, tgl_msk, GETDATE()) as lama
+            FROM TBL_TEBUMSK a
+            INNER JOIN TBL_MSTKEBUN b ON a.induk = b.induk
+            WHERE NOT NO_LORI IS NULL AND NOT NETTO IS NULL
+            ORDER BY tgl_msk ASC
+        ";
+
+        $rows = DB::connection('sqlsrv')->select($sql);
+
+        $payload = [
+            'data' => $rows,
+        ];
+
+        $jsonOptions = defined('JSON_PARTIAL_OUTPUT_ON_ERROR') ? JSON_PARTIAL_OUTPUT_ON_ERROR : 0;
+        if (defined('JSON_INVALID_UTF8_IGNORE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_IGNORE;
+        } elseif (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+
+        return response()->json($payload, 200, [], $jsonOptions);
+    }
+
+    /**
+     * Return weighed truck queue data from SQL Server using raw query.
+     */
+    public function antrianTrukSudahTimbang()
+    {
+        $sql = "
+            SELECT
+                a.spa,
+                a.nopol,
+                a.induk,
+                b.petani,
+                b.kebun,
+                CONVERT(varchar, tgl_msk, 103) as tgl_msk,
+                CAST(tgl_msk as time) as jam_msk,
+                DATEDIFF(HOUR, tgl_msk, GETDATE()) as lama
+            FROM TBL_TEBUMSK a
+            INNER JOIN TBL_MSTKEBUN b ON a.induk = b.induk
+            WHERE NOT a.BRUTTO IS NULL AND TARA IS NULL AND NO_LORI IS NULL
+            ORDER BY tgl_msk ASC
+        ";
+
+        $rows = DB::connection('sqlsrv')->select($sql);
+
+        $payload = [
+            'data' => $rows,
+        ];
+
+        $jsonOptions = defined('JSON_PARTIAL_OUTPUT_ON_ERROR') ? JSON_PARTIAL_OUTPUT_ON_ERROR : 0;
+        if (defined('JSON_INVALID_UTF8_IGNORE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_IGNORE;
+        } elseif (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+
+        return response()->json($payload, 200, [], $jsonOptions);
+    }
+
+    /**
+     * Return unweighed truck queue data from SQL Server using raw query.
+     */
+    public function antrianTrukBelumTimbang()
+    {
+        $sql = "
+            SELECT
+                a.spa,
+                a.nopol,
+                a.induk,
+                b.petani,
+                b.kebun,
+                CONVERT(varchar, tgl_msk, 103) as tgl_msk,
+                CAST(tgl_msk as time) as jam_msk,
+                DATEDIFF(HOUR, tgl_msk, GETDATE()) as lama
+            FROM TBL_TEBUMSK a
+            INNER JOIN TBL_MSTKEBUN b ON a.induk = b.induk
+            WHERE NOT a.TGL_MSK IS NULL AND a.BRUTTO IS NULL
+            ORDER BY tgl_msk ASC
+        ";
+
+        $rows = DB::connection('sqlsrv')->select($sql);
+
+        $payload = [
+            'data' => $rows,
+        ];
+
+        $jsonOptions = defined('JSON_PARTIAL_OUTPUT_ON_ERROR') ? JSON_PARTIAL_OUTPUT_ON_ERROR : 0;
+        if (defined('JSON_INVALID_UTF8_IGNORE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_IGNORE;
+        } elseif (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+
+        return response()->json($payload, 200, [], $jsonOptions);
+    }
 }

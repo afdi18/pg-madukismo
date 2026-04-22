@@ -19,7 +19,7 @@ function setTab(t: 'data' | 'epos') {
       <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 via-indigo-500 to-fuchsia-500"></div>
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 class="text-xl font-bold tracking-tight text-white">Manajemen SPA</h1>
+          <h1 class="text-xl font-bold tracking-tight text-white">Monitoring SPA</h1>
           <p class="text-sm text-sky-200/90 mt-0.5">Kelola data SPA dan pengaturan integrasi EPOS.</p>
         </div>
       </div>

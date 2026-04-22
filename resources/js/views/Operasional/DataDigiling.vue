@@ -10,28 +10,28 @@ interface DigilingRow {
   pemasukan: number
 }
 
-const hariGilingInput = ref(205)
-const tanggalLabel = 'Senin, 13 April 2026'
-const tanggalInput = ref('2026-04-13')
+const hariGilingInput = ref(1)
+const tanggalLabel = 'Selasa, 21 April 2026'
+const tanggalInput = ref('2026-04-21')
 
 const pagiRows: DigilingRow[] = [
-  { jam: '06-07', berat: 1616, truk: 19, lori: 0, total: 19, pemasukan: 0 },
-  { jam: '07-08', berat: 1658, truk: 21, lori: 0, total: 21, pemasukan: 6 },
-  { jam: '08-09', berat: 1865, truk: 27, lori: 0, total: 27, pemasukan: 2 },
-  { jam: '09-10', berat: 2004, truk: 25, lori: 0, total: 25, pemasukan: 3 },
-  { jam: '10-11', berat: 1921, truk: 22, lori: 0, total: 22, pemasukan: 0 },
-  { jam: '11-12', berat: 1639, truk: 19, lori: 0, total: 19, pemasukan: 1 },
-  { jam: '12-13', berat: 2084, truk: 27, lori: 0, total: 27, pemasukan: 0 },
-  { jam: '13-14', berat: 1473, truk: 19, lori: 0, total: 19, pemasukan: 1 },
+  { jam: '06-07', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '07-08', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '08-09', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '09-10', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '10-11', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '11-12', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '12-13', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '13-14', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
 ]
 
 const siangRows: DigilingRow[] = [
-  { jam: '14-15', berat: 1680, truk: 15, lori: 0, total: 15, pemasukan: 0 },
-  { jam: '15-16', berat: 1700, truk: 20, lori: 0, total: 20, pemasukan: 2 },
-  { jam: '16-17', berat: 1567, truk: 18, lori: 0, total: 18, pemasukan: 0 },
-  { jam: '17-18', berat: 1597, truk: 18, lori: 0, total: 18, pemasukan: 0 },
-  { jam: '18-19', berat: 2118, truk: 17, lori: 0, total: 17, pemasukan: 0 },
-  { jam: '19-20', berat: 676, truk: 4, lori: 0, total: 4, pemasukan: 0 },
+  { jam: '14-15', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '15-16', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '16-17', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '17-18', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '18-19', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
+  { jam: '19-20', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
   { jam: '20-21', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
   { jam: '21-22', berat: 0, truk: 0, lori: 0, total: 0, pemasukan: 0 },
 ]
@@ -218,15 +218,15 @@ function shiftClass(shift: ShiftKey, part: 'group' | 'head' | 'cell' | 'total') 
         <div class="grid grid-cols-3 gap-2 text-sm">
           <div class="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2 text-center">
             <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Ku</p>
-            <p class="text-lg font-extrabold text-sky-700 dark:text-sky-300">23.598</p>
+            <p class="text-lg font-extrabold text-sky-700 dark:text-sky-300">0</p>
           </div>
           <div class="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2 text-center">
             <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Rit Digiling</p>
-            <p class="text-lg font-extrabold text-emerald-700 dark:text-emerald-300">271</p>
+            <p class="text-lg font-extrabold text-emerald-700 dark:text-emerald-300">0</p>
           </div>
           <div class="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2 text-center">
             <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Rit Pemasukan</p>
-            <p class="text-lg font-extrabold text-amber-700 dark:text-amber-300">15</p>
+            <p class="text-lg font-extrabold text-amber-700 dark:text-amber-300">0</p>
           </div>
         </div>
       </div>
@@ -237,11 +237,11 @@ function shiftClass(shift: ShiftKey, part: 'group' | 'head' | 'cell' | 'total') 
         <div class="grid grid-cols-3 gap-2 text-sm">
           <div class="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2 text-center">
             <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Ku</p>
-            <p class="text-lg font-extrabold text-sky-700 dark:text-sky-300">9.567.514</p>
+            <p class="text-lg font-extrabold text-sky-700 dark:text-sky-300">0</p>
           </div>
           <div class="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2 text-center">
             <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Rit Digiling</p>
-            <p class="text-lg font-extrabold text-emerald-700 dark:text-emerald-300">130.656</p>
+            <p class="text-lg font-extrabold text-emerald-700 dark:text-emerald-300">0</p>
           </div>
           <div class="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2 text-center">
             <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Rit Pemasukan</p>
