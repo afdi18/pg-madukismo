@@ -32,6 +32,9 @@ enum Permission: string
     // PENERIMAAN TEBU (SQL Server)
     // ================================================================
     case PENERIMAAN_VIEW          = 'penerimaan.view';
+    case PENERIMAAN_SPA_VIEW      = 'penerimaan.spa.view';
+    case PENERIMAAN_ANTRIAN_VIEW  = 'penerimaan.antrian.view';
+    case PENERIMAAN_PEMASUKAN_VIEW = 'penerimaan.pemasukan.view';
     case PENERIMAAN_CREATE        = 'penerimaan.create';
     case PENERIMAAN_UPDATE        = 'penerimaan.update';
     case PENERIMAAN_DELETE        = 'penerimaan.delete';
@@ -91,6 +94,9 @@ enum Permission: string
             self::LAB_QA_APPROVE           => 'Approve Lab QA',
             self::LAB_QA_EXPORT            => 'Export Lab QA',
             self::PENERIMAAN_VIEW          => 'Akses Penerimaan Tebu (Data SPA, Pengaturan EPOS, Monitoring Antrian, Data Pemasukan)',
+            self::PENERIMAAN_SPA_VIEW      => 'Akses Penerimaan Tebu - Monitoring SPA',
+            self::PENERIMAAN_ANTRIAN_VIEW  => 'Akses Penerimaan Tebu - Monitoring Antrian',
+            self::PENERIMAAN_PEMASUKAN_VIEW => 'Akses Penerimaan Tebu - Data Pemasukan',
             self::PENERIMAAN_CREATE        => 'Tambah Penerimaan Tebu',
             self::PENERIMAAN_UPDATE        => 'Edit Penerimaan Tebu',
             self::PENERIMAAN_DELETE        => 'Hapus Penerimaan Tebu',
@@ -155,6 +161,9 @@ enum Permission: string
             self::LAB_QA_VIEW->value,
             self::LAB_QA_EXPORT->value,
             self::PENERIMAAN_VIEW->value,
+            self::PENERIMAAN_SPA_VIEW->value,
+            self::PENERIMAAN_ANTRIAN_VIEW->value,
+            self::PENERIMAAN_PEMASUKAN_VIEW->value,
             self::PENERIMAAN_EXPORT->value,
             self::OPERASIONAL_VIEW->value,
             self::OPERASIONAL_EXPORT->value,
@@ -173,6 +182,9 @@ enum Permission: string
             self::LAB_QA_CREATE->value,
             self::LAB_QA_UPDATE->value,
             self::PENERIMAAN_VIEW->value,
+            self::PENERIMAAN_SPA_VIEW->value,
+            self::PENERIMAAN_ANTRIAN_VIEW->value,
+            self::PENERIMAAN_PEMASUKAN_VIEW->value,
             self::PENERIMAAN_CREATE->value,
             self::PENERIMAAN_UPDATE->value,
             self::OPERASIONAL_VIEW->value,
@@ -191,6 +203,9 @@ enum Permission: string
             self::PETA_KEBUN_VIEW->value,
             self::LAB_QA_VIEW->value,
             self::PENERIMAAN_VIEW->value,
+            self::PENERIMAAN_SPA_VIEW->value,
+            self::PENERIMAAN_ANTRIAN_VIEW->value,
+            self::PENERIMAAN_PEMASUKAN_VIEW->value,
             self::OPERASIONAL_VIEW->value,
         ];
     }

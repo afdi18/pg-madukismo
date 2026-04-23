@@ -105,7 +105,7 @@ const router = createRouter({
                     path: 'penerimaan',
                     name: 'Penerimaan',
                     component: () => import('@/views/Penerimaan/Index.vue'),
-                    meta: { title: 'Penerimaan Tebu', permission: 'penerimaan.view' },
+                    meta: { title: 'Penerimaan Tebu', permission: 'penerimaan.spa.view|penerimaan.antrian.view|penerimaan.pemasukan.view' },
                     children: [
                         {
                             path: '',
@@ -117,7 +117,7 @@ const router = createRouter({
                             component: () => import('@/views/Penerimaan/ManajemenSPA/Index.vue'),
                             meta: {
                                 title: 'Manajemen SPA',
-                                permission: 'penerimaan.view',
+                                permission: 'penerimaan.spa.view',
                             },
                         },
                         {
@@ -126,7 +126,7 @@ const router = createRouter({
                             component: () => import('@/views/Penerimaan/MonitoringAntrian/Index.vue'),
                             meta: {
                                 title: 'Monitoring Antrian',
-                                permission: 'penerimaan.view',
+                                permission: 'penerimaan.antrian.view',
                             },
                         },
                         {
@@ -135,7 +135,7 @@ const router = createRouter({
                             component: () => import('@/views/Penerimaan/DataPemasukan/Index.vue'),
                             meta: {
                                 title: 'Data Pemasukan',
-                                permission: 'penerimaan.view',
+                                permission: 'penerimaan.pemasukan.view',
                             },
                         },
                     ],

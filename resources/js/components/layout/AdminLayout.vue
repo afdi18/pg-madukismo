@@ -64,11 +64,11 @@ const navItems = computed<NavItem[]>(() => [
     {
       label: 'Penerimaan Tebu',
       icon: TruckIcon,
-      permission: 'penerimaan.view',
+      permission: 'penerimaan.spa.view',
       children: [
-        { label: 'Monitoring SPA', path: '/penerimaan/manajemen-spa', permission: 'penerimaan.view' },
-        { label: 'Monitoring Antrian', path: '/penerimaan/monitoring-antrian', permission: 'penerimaan.view' },
-        { label: 'Data Pemasukan', path: '/penerimaan/data-pemasukan', permission: 'penerimaan.view' },
+        { label: 'Monitoring SPA', path: '/penerimaan/manajemen-spa', permission: 'penerimaan.spa.view' },
+        { label: 'Monitoring Antrian', path: '/penerimaan/monitoring-antrian', permission: 'penerimaan.antrian.view' },
+        { label: 'Data Pemasukan', path: '/penerimaan/data-pemasukan', permission: 'penerimaan.pemasukan.view' },
       ],
     },
     {

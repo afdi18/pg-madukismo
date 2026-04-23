@@ -56,13 +56,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
      // ============================================================
      Route::prefix('penerimaan')->group(function () {
           Route::get('/', [\App\Http\Controllers\Api\PenerimaanController::class, 'index'])
-                ->middleware(AbacMiddleware::class . ':penerimaan.view');
+                ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
               Route::get('/antrian-lori', [\App\Http\Controllers\Api\PenerimaanController::class, 'antrianLori'])
-                   ->middleware(AbacMiddleware::class . ':penerimaan.view');
+                   ->middleware(AbacMiddleware::class . ':penerimaan.antrian.view');
               Route::get('/antrian-truk-sudah-timbang', [\App\Http\Controllers\Api\PenerimaanController::class, 'antrianTrukSudahTimbang'])
-                   ->middleware(AbacMiddleware::class . ':penerimaan.view');
+                   ->middleware(AbacMiddleware::class . ':penerimaan.antrian.view');
               Route::get('/antrian-truk-belum-timbang', [\App\Http\Controllers\Api\PenerimaanController::class, 'antrianTrukBelumTimbang'])
-                   ->middleware(AbacMiddleware::class . ':penerimaan.view');
+                   ->middleware(AbacMiddleware::class . ':penerimaan.antrian.view');
+              Route::get('/pemasukan-kategori', [\App\Http\Controllers\Api\PenerimaanController::class, 'pemasukanKategori'])
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
+              Route::get('/pemasukan-kebun', [\App\Http\Controllers\Api\PenerimaanController::class, 'pemasukanKebun'])
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
      });
 
      // ============================================================
@@ -70,19 +74,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
      // ============================================================
      Route::prefix('epos')->group(function () {
           Route::get('/devices', [\App\Http\Controllers\Api\EposController::class, 'devices'])
-               ->middleware(AbacMiddleware::class . ':penerimaan.view');
+               ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
           Route::get('/pos', [\App\Http\Controllers\Api\EposController::class, 'posList'])
-               ->middleware(AbacMiddleware::class . ':penerimaan.view');
+               ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
           Route::post('/pos', [\App\Http\Controllers\Api\EposController::class, 'storePos'])
-               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.view');
+               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.spa.view');
           Route::put('/pos/{idPos}', [\App\Http\Controllers\Api\EposController::class, 'updatePos'])
-               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.view');
+               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.spa.view');
           Route::put('/devices/{idDevice}/active', [\App\Http\Controllers\Api\EposController::class, 'setActive'])
-               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.view');
+               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.spa.view');
           Route::put('/devices/{idDevice}', [\App\Http\Controllers\Api\EposController::class, 'updateDevice'])
-               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.view');
+               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.spa.view');
           Route::get('/settings', [\App\Http\Controllers\Api\EposController::class, 'settings'])
-               ->middleware(AbacMiddleware::class . ':penerimaan.view');
+               ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
           Route::post('/settings', [\App\Http\Controllers\Api\EposController::class, 'saveSettings'])
                ->middleware(AbacMiddleware::class . ':penerimaan.update');
      });

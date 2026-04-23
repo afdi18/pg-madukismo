@@ -50,6 +50,8 @@ const form = ref({
   make_admin: false,
   permission_ids: [] as number[],
 })
+const selectedMenuKeys = ref<string[]>([])
+const nonMenuPermissionIds = ref<number[]>([])
 
 const roleList = computed(() => roles.value)
 const totalPermissionCount = computed(() => Object.values(permissionGroups.value).flat().length)
@@ -75,17 +77,17 @@ const menuAccessGroups: MenuAccessGroup[] = [
       {
         key: 'penerimaan-manajemen-spa',
         label: 'Manajemen SPA',
-        permissionNames: ['penerimaan.view', 'penerimaan.update'],
+        permissionNames: ['penerimaan.spa.view', 'penerimaan.update'],
       },
       {
         key: 'penerimaan-monitoring-antrian',
         label: 'Monitoring Antrian',
-        permissionNames: ['penerimaan.view'],
+        permissionNames: ['penerimaan.antrian.view'],
       },
       {
         key: 'penerimaan-data-pemasukan',
         label: 'Data Pemasukan',
-        permissionNames: ['penerimaan.view'],
+        permissionNames: ['penerimaan.pemasukan.view'],
       },
     ],
   },
@@ -143,6 +145,8 @@ async function loadData() {
 function resetForm() {
   selectedRoleId.value = null
   errors.value = {}
+  selectedMenuKeys.value = []
+  nonMenuPermissionIds.value = []
   form.value = {
     name: '',
     display_name: '',
@@ -154,6 +158,16 @@ function resetForm() {
 }
 
 function loadRoleToForm(role: RoleItem) {
+  const rolePermissionIds = role.permissions.map(p => p.id)
+  const allMenuPermissionIds = new Set(
+    menuAccessGroups
+      .flatMap(group => group.items)
+      .flatMap(item => permissionIdsByNames(item.permissionNames))
+  )
+
+  nonMenuPermissionIds.value = rolePermissionIds.filter(id => !allMenuPermissionIds.has(id))
+  selectedMenuKeys.value = inferSelectedMenuKeys(rolePermissionIds)
+
   selectedRoleId.value = role.id
   errors.value = {}
   form.value = {
@@ -162,8 +176,10 @@ function loadRoleToForm(role: RoleItem) {
     description: role.description ?? '',
     color: role.color,
     make_admin: role.permissions.length === totalPermissionCount.value,
-    permission_ids: role.permissions.map(p => p.id),
+    permission_ids: [],
   }
+
+  syncPermissionIdsFromMenuSelection()
 }
 
 function togglePermission(permissionId: number) {
@@ -190,6 +206,8 @@ function toggleGroup(groupPermissions: PermissionItem[]) {
 
 function applyAdminPermissions() {
   if (form.value.make_admin) {
+    selectedMenuKeys.value = menuAccessGroups.flatMap(group => group.items.map(item => item.key))
+    nonMenuPermissionIds.value = []
     form.value.permission_ids = Object.values(permissionGroups.value).flat().map(p => p.id)
   }
 }
@@ -200,23 +218,52 @@ function permissionIdsByNames(permissionNames: string[]): number[] {
     .map(permission => permission.id)
 }
 
+function syncPermissionIdsFromMenuSelection() {
+  const selectedIds = Array.from(
+    new Set(
+      menuAccessGroups
+        .flatMap(group => group.items)
+        .filter(item => selectedMenuKeys.value.includes(item.key))
+        .flatMap(item => permissionIdsByNames(item.permissionNames))
+    )
+  )
+
+  form.value.permission_ids = Array.from(new Set([...nonMenuPermissionIds.value, ...selectedIds]))
+}
+
+function inferSelectedMenuKeys(permissionIds: number[]): string[] {
+  const selected = new Set<string>()
+  const usedSignature = new Set<string>()
+
+  for (const group of menuAccessGroups) {
+    for (const item of group.items) {
+      const ids = permissionIdsByNames(item.permissionNames)
+      if (ids.length === 0) continue
+      if (!ids.every(id => permissionIds.includes(id))) continue
+
+      const signature = [...ids].sort((a, b) => a - b).join('-')
+      if (usedSignature.has(signature)) continue
+
+      usedSignature.add(signature)
+      selected.add(item.key)
+    }
+  }
+
+  return Array.from(selected)
+}
+
 function isMenuItemChecked(item: MenuAccessItem): boolean {
-  const ids = permissionIdsByNames(item.permissionNames)
-  if (ids.length === 0) return false
-  return ids.every(id => form.value.permission_ids.includes(id))
+  return selectedMenuKeys.value.includes(item.key)
 }
 
 function toggleMenuItem(item: MenuAccessItem) {
-  const ids = permissionIdsByNames(item.permissionNames)
-  if (ids.length === 0) return
-
   if (isMenuItemChecked(item)) {
-    form.value.permission_ids = form.value.permission_ids.filter(id => !ids.includes(id))
-    return
+    selectedMenuKeys.value = selectedMenuKeys.value.filter(key => key !== item.key)
+  } else {
+    selectedMenuKeys.value = [...selectedMenuKeys.value, item.key]
   }
 
-  const merged = new Set([...form.value.permission_ids, ...ids])
-  form.value.permission_ids = Array.from(merged)
+  syncPermissionIdsFromMenuSelection()
 }
 
 function isMenuGroupChecked(group: MenuAccessGroup): boolean {
@@ -225,16 +272,16 @@ function isMenuGroupChecked(group: MenuAccessGroup): boolean {
 }
 
 function toggleMenuGroup(group: MenuAccessGroup) {
-  const groupIds = Array.from(new Set(group.items.flatMap(item => permissionIdsByNames(item.permissionNames))))
-  if (groupIds.length === 0) return
-
   if (isMenuGroupChecked(group)) {
-    form.value.permission_ids = form.value.permission_ids.filter(id => !groupIds.includes(id))
-    return
+    selectedMenuKeys.value = selectedMenuKeys.value.filter(
+      key => !group.items.some(item => item.key === key)
+    )
+  } else {
+    const merged = new Set([...selectedMenuKeys.value, ...group.items.map(item => item.key)])
+    selectedMenuKeys.value = Array.from(merged)
   }
 
-  const merged = new Set([...form.value.permission_ids, ...groupIds])
-  form.value.permission_ids = Array.from(merged)
+  syncPermissionIdsFromMenuSelection()
 }
 
 const showDeleteAclConfirm = ref(false)

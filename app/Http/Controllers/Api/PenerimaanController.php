@@ -215,4 +215,68 @@ class PenerimaanController extends Controller
 
         return response()->json($payload, 200, [], $jsonOptions);
     }
+
+    /**
+     * Return pemasukan per kebun (induk) from SQL Server SP Proc_Pmsk_Induk.
+     * Parameter tanggal format: mm/dd/yyyy
+     */
+    public function pemasukanKebun(Request $request)
+    {
+        $tanggal = (string) $request->query('tanggal', '');
+        if ($tanggal === '') {
+            $tanggal = now()->format('m/d/Y');
+        }
+
+        if (!preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $tanggal)) {
+            return response()->json(['error' => 'Format tanggal harus mm/dd/yyyy'], 422);
+        }
+
+        $rows = DB::connection('sqlsrv')->select('EXEC Proc_Pmsk_Induk ?', [$tanggal]);
+
+        $payload = [
+            'data' => $rows,
+            'meta' => ['tanggal' => $tanggal],
+        ];
+
+        $jsonOptions = defined('JSON_PARTIAL_OUTPUT_ON_ERROR') ? JSON_PARTIAL_OUTPUT_ON_ERROR : 0;
+        if (defined('JSON_INVALID_UTF8_IGNORE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_IGNORE;
+        } elseif (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+
+        return response()->json($payload, 200, [], $jsonOptions);
+    }
+
+    /**
+     * Return pemasukan per kategori from SQL Server SP Proc_Pem_Ktgr.
+     * Parameter tanggal format: mm/dd/yyyy
+     */
+    public function pemasukanKategori(Request $request)
+    {
+        $tanggal = (string) $request->query('tanggal', '');
+        if ($tanggal === '') {
+            $tanggal = now()->format('m/d/Y');
+        }
+
+        if (!preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $tanggal)) {
+            return response()->json(['error' => 'Format tanggal harus mm/dd/yyyy'], 422);
+        }
+
+        $rows = DB::connection('sqlsrv')->select('EXEC Proc_Pem_Ktgr ?', [$tanggal]);
+
+        $payload = [
+            'data' => $rows,
+            'meta' => ['tanggal' => $tanggal],
+        ];
+
+        $jsonOptions = defined('JSON_PARTIAL_OUTPUT_ON_ERROR') ? JSON_PARTIAL_OUTPUT_ON_ERROR : 0;
+        if (defined('JSON_INVALID_UTF8_IGNORE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_IGNORE;
+        } elseif (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+
+        return response()->json($payload, 200, [], $jsonOptions);
+    }
 }

@@ -1,36 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import PemasukanPerKebun from './PemasukanPerKebun.vue'
+import PemasukanPerKategori from './PemasukanPerKategori.vue'
 
-type PemasukanKebunRow = {
-  no: number
-  register: string
-  kelompok: string
-  kebun: string
-  luasHa: string
-  taksasi: string
-  hariIniRit: string
-  hariIniBerat: string
-  sdHariIniRit: string
-  sdHariIniBerat: string
-  produktivitas: string
-  persentase: string
-}
-
-const hariKe = ref(206)
-const kategori = ref('561 - TS I')
-
-const kebunRows: PemasukanKebunRow[] = []
-
-const totalRow = {
-  luasHa: '0',
-  taksasi: '0',
-  hariIniRit: '0',
-  hariIniBerat: '0',
-  sdHariIniRit: '0',
-  sdHariIniBerat: '0',
-  produktivitas: '0',
-  persentase: '0',
-}
+const activeTab = ref<'kebun' | 'kategori'>('kebun')
 </script>
 
 <template>
@@ -49,100 +22,34 @@ const totalRow = {
       <div class="px-3 sm:px-4 lg:px-6 py-0">
         <div class="flex items-center gap-0.5 sm:gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
-            class="relative px-3 sm:px-4 lg:px-5 py-4 text-xs sm:text-sm font-medium transition-all duration-300 shrink-0 whitespace-nowrap text-yellow-600 dark:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-yellow-400 after:to-yellow-600"
+            @click="activeTab = 'kebun'"
+            :class="[
+              'relative px-3 sm:px-4 lg:px-5 py-4 text-xs sm:text-sm font-medium transition-all duration-300 shrink-0 whitespace-nowrap',
+              activeTab === 'kebun'
+                ? 'text-yellow-600 dark:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-yellow-400 after:to-yellow-600'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
+            ]"
             type="button"
           >
             Pemasukan per Kebun
           </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
-      <div class="p-4 space-y-4">
-        <div class="flex flex-wrap items-end gap-3">
-          <label class="text-sm text-gray-700 dark:text-gray-200">
-            <span class="mb-1 block">Harike</span>
-            <input
-              v-model.number="hariKe"
-              type="number"
-              min="1"
-              class="w-28 h-10 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-sm text-gray-800 dark:text-gray-100"
-            />
-          </label>
-
-          <label class="text-sm text-gray-700 dark:text-gray-200">
-            <span class="mb-1 block">Kategori</span>
-            <select
-              v-model="kategori"
-              class="w-40 h-10 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-sm text-gray-800 dark:text-gray-100"
-            >
-              <option>561 - TS I</option>
-            </select>
-          </label>
-
-          <button class="h-10 rounded-lg bg-slate-800 px-6 text-sm font-medium text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 self-end">
-            Lihat
+          <button
+            @click="activeTab = 'kategori'"
+            :class="[
+              'relative px-3 sm:px-4 lg:px-5 py-4 text-xs sm:text-sm font-medium transition-all duration-300 shrink-0 whitespace-nowrap',
+              activeTab === 'kategori'
+                ? 'text-yellow-600 dark:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-yellow-400 after:to-yellow-600'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
+            ]"
+            type="button"
+          >
+            Pemasukan per Kategori
           </button>
         </div>
-
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-          <table class="w-full min-w-[1400px] text-sm">
-            <thead>
-              <tr class="bg-gray-200/90 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
-                <th rowspan="2" class="px-2 py-2 text-center border border-gray-300 dark:border-gray-700">No</th>
-                <th rowspan="2" class="px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Register</th>
-                <th rowspan="2" class="px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Kelompok</th>
-                <th rowspan="2" class="px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Kebun</th>
-                <th rowspan="2" class="px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Luas (Ha)</th>
-                <th rowspan="2" class="px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Taksasi</th>
-                <th colspan="2" class="px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Hari Ini</th>
-                <th colspan="2" class="px-2 py-2 text-center border border-gray-300 dark:border-gray-700">S / d Hari Ini</th>
-                <th rowspan="2" class="px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Produktifitas (Ku/Ha)</th>
-                <th rowspan="2" class="px-2 py-2 text-center border border-gray-300 dark:border-gray-700">(%) Terhadap Taks</th>
-              </tr>
-              <tr class="bg-gray-200/90 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
-                <th class="px-2 py-1.5 text-center border border-gray-300 dark:border-gray-700">Rit</th>
-                <th class="px-2 py-1.5 text-center border border-gray-300 dark:border-gray-700">Berat (Ku)</th>
-                <th class="px-2 py-1.5 text-center border border-gray-300 dark:border-gray-700">Rit</th>
-                <th class="px-2 py-1.5 text-center border border-gray-300 dark:border-gray-700">Berat (Ku)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="row in kebunRows"
-                :key="row.no"
-                class="bg-cyan-50/70 dark:bg-cyan-950/20 text-gray-800 dark:text-gray-100"
-              >
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-left" :class="Number(row.persentase) > 100 ? 'text-red-600 dark:text-red-400' : ''">{{ row.no }}</td>
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40" :class="Number(row.persentase) > 100 ? 'text-red-600 dark:text-red-400' : ''">{{ row.register }}</td>
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40">{{ row.kelompok }}</td>
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40" :class="Number(row.persentase) > 100 ? 'text-red-600 dark:text-red-400' : ''">{{ row.kebun }}</td>
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right" :class="Number(row.persentase) > 100 ? 'text-red-600 dark:text-red-400' : ''">{{ row.luasHa }}</td>
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right" :class="Number(row.persentase) > 100 ? 'text-red-600 dark:text-red-400' : ''">{{ row.taksasi }}</td>
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right" :class="Number(row.persentase) > 100 ? 'text-red-600 dark:text-red-400' : ''">{{ row.hariIniRit }}</td>
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right" :class="Number(row.persentase) > 100 ? 'text-red-600 dark:text-red-400' : ''">{{ row.hariIniBerat }}</td>
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right" :class="Number(row.persentase) > 100 ? 'text-red-600 dark:text-red-400' : ''">{{ row.sdHariIniRit }}</td>
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right" :class="Number(row.persentase) > 100 ? 'text-red-600 dark:text-red-400' : ''">{{ row.sdHariIniBerat }}</td>
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right" :class="Number(row.persentase) > 100 ? 'text-red-600 dark:text-red-400' : ''">{{ row.produktivitas }}</td>
-                <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right" :class="Number(row.persentase) > 100 ? 'text-red-600 dark:text-red-400' : ''">{{ row.persentase }}</td>
-              </tr>
-
-              <tr class="bg-gray-200/90 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold">
-                <td colspan="4" class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-center">Jumlah</td>
-                <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ totalRow.luasHa }}</td>
-                <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ totalRow.taksasi }}</td>
-                <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ totalRow.hariIniRit }}</td>
-                <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ totalRow.hariIniBerat }}</td>
-                <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ totalRow.sdHariIniRit }}</td>
-                <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ totalRow.sdHariIniBerat }}</td>
-                <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ totalRow.produktivitas }}</td>
-                <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ totalRow.persentase }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
+
+    <PemasukanPerKebun v-if="activeTab === 'kebun'" />
+    <PemasukanPerKategori v-else />
   </div>
 </template>

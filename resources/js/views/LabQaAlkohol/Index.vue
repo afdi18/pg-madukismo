@@ -704,12 +704,12 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <div v-if="submitPreview" class="mt-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-4">
+            <!-- <div v-if="submitPreview" class="mt-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-4">
               <p class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">📝 Payload JSON</p>
               <div class="overflow-x-auto rounded-lg bg-gray-900 p-2 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded">
                 <pre class="text-xs text-gray-300 font-mono">{{ submitPreview }}</pre>
               </div>
-            </div>
+            </div> -->
         </div>
       </div>
 
