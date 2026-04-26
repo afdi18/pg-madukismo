@@ -130,9 +130,9 @@ export const useAuthStore = defineStore('auth', () => {
      */
     function getDefaultRoute(): string {
         const routeOptions: DefaultRouteOption[] = [
-            { permission: 'dashboard.view', path: '/' },
+            { permission: 'dashboard.view', path: '/dashboard/informasi-tebu' },
             { permission: 'operasional.view', path: '/dashboard/monitoring-pabrik' },
-            { permission: 'lab_qa.view', path: '/dashboard/pengawasan-qa' },
+            { permission: 'dashboard.pengawasan_qa.view', path: '/dashboard/pengawasan-qa' },
             { permission: 'penerimaan.spa.view', path: '/penerimaan/manajemen-spa' },
             { permission: 'penerimaan.antrian.view', path: '/penerimaan/monitoring-antrian' },
             { permission: 'penerimaan.pemasukan.view', path: '/penerimaan/data-pemasukan' },

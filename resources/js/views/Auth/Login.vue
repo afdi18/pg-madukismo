@@ -19,7 +19,7 @@ async function handleLogin() {
     if (!username.value || !password.value) return
     try {
         await authStore.login(username.value, password.value)
-    const redirect = route.query.redirect as string ?? authStore.getDefaultRoute()
+        const redirect = route.query.redirect as string ?? authStore.getDefaultRoute()
         router.push(redirect)
     } catch {
         // error sudah tersimpan di authStore.loginError
@@ -229,7 +229,7 @@ async function handleLogin() {
 
       <!-- Bottom copyright -->
       <p class="text-center text-xs text-gray-400 dark:text-gray-600 py-4">
-        &copy; {{ new Date().getFullYear() }} PT Madubaru — Dashboard Monitoring PG Madukismo
+        &copy; {{ new Date().getFullYear() }} ITPGRAB — Dashboard Monitoring PG Madukismo
       </p>
     </div>
 

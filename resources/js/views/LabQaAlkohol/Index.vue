@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import axios from 'axios'
 import { AlertTriangleIcon, CheckCircle2Icon } from 'lucide-vue-next'
 import { useToast } from '@/composables/useToast'
+import { useAuthStore } from '@/stores/auth'
 
 type OperatorKondisi = '>' | '<' | '>=' | '<=' | 'BETWEEN' | 'NONE'
 
@@ -27,6 +28,13 @@ interface ParameterInput {
   nilai_aktual: string
 }
 
+interface QaDetailItem {
+  id: number
+  parameter_id: number
+  nilai_aktual: number | null
+  status_alert: boolean
+}
+
 interface QaHistoryItem {
   id: number
   tanggal: string
@@ -34,7 +42,7 @@ interface QaHistoryItem {
   shift: number
   petugas: string
   stasiun_id?: number
-  details?: Array<{ status_alert: boolean }>
+  details?: QaDetailItem[]
 }
 
 interface AlcoholStationConfig {
@@ -87,6 +95,10 @@ const canScrollTabLeft = ref(false)
 const canScrollTabRight = ref(false)
 const showTabScrollArrows = ref(false)
 const toast = useToast()
+const authStore = useAuthStore()
+const editingHeaderId = ref<number | null>(null)
+const deletingHeaderId = ref<number | null>(null)
+const editingDetailByParameterId = ref<Record<number, number>>({})
 
 const stasiunList = ref<Stasiun[]>([])
 const parameterList = ref<Parameter[]>([])
@@ -164,7 +176,26 @@ const hasAnyParameterValue = computed(() => {
   }
   return false
 })
-const isSubmitDisabled = computed(() => saving.value || !activeStasiun.value)
+const isSubmitDisabled = computed(() => saving.value || !activeStasiun.value || !canSubmitEntry.value)
+const isEditingEntry = computed(() => editingHeaderId.value !== null)
+const canCreateEntry = computed(() => authStore.can('lab_qa.create'))
+const canEditEntry = computed(() => authStore.can('lab_qa.update'))
+const canDeleteEntry = computed(() => authStore.can('lab_qa.delete'))
+const canManageHistory = computed(() => canEditEntry.value || canDeleteEntry.value)
+const canSubmitEntry = computed(() => (isEditingEntry.value ? canEditEntry.value : canCreateEntry.value))
+
+function resetFormParameterValues() {
+  form.parameters = form.parameters.map((item) => ({
+    ...item,
+    nilai_aktual: '',
+  }))
+}
+
+function cancelEditingEntry() {
+  editingHeaderId.value = null
+  editingDetailByParameterId.value = {}
+  resetFormParameterValues()
+}
 
 function getTargetText(parameter: Parameter): string {
   const bottom = parameter.batas_bawah
@@ -336,6 +367,11 @@ async function fetchHistory(stasiunId: number, page = 1, append = false) {
 async function submitForm() {
   if (saving.value) return
 
+  if (!canSubmitEntry.value) {
+    toast.error(isEditingEntry.value ? 'Anda tidak memiliki akses untuk mengubah data QA alkohol.' : 'Anda tidak memiliki akses untuk menambah data QA alkohol.')
+    return
+  }
+
   if (!activeStasiun.value) {
     toast.error('Stasiun QA alkohol belum dipilih.')
     return
@@ -375,22 +411,154 @@ async function submitForm() {
       parameters: filledParameters,
     }
 
-    const { data } = await axios.post('/api/lab-qa', payload)
+    if (isEditingEntry.value && editingHeaderId.value) {
+      await axios.put(`/api/lab-qa/${editingHeaderId.value}`, {
+        tanggal: payload.tanggal,
+        jam: payload.jam,
+        shift: payload.shift,
+        petugas: payload.petugas,
+      })
 
-    toast.success(data?.message ?? 'Data QA alkohol berhasil disimpan.')
+      // Pisahkan parameter menjadi update (ada detail ID) dan create (tidak ada detail ID)
+      const detailUpdates: Promise<any>[] = []
+      const detailCreates: Promise<any>[] = []
 
-    submitPreview.value = JSON.stringify(payload, null, 2)
+      for (const item of form.parameters) {
+        const detailId = editingDetailByParameterId.value[item.parameter_id]
+        
+        if (detailId) {
+          // Update existing detail
+          detailUpdates.push(
+            axios.put(`/api/lab-qa/detail/${detailId}`, {
+              nilai_aktual: item.nilai_aktual === '' ? null : Number(item.nilai_aktual),
+            })
+          )
+        } else if (item.nilai_aktual !== '') {
+          // Create new detail jika belum ada dan nilai tidak kosong
+          detailCreates.push(
+            axios.post(`/api/lab-qa/${editingHeaderId.value}/details`, {
+              parameter_id: item.parameter_id,
+              nilai_aktual: Number(item.nilai_aktual),
+            })
+          )
+        }
+      }
 
-    form.parameters = form.parameters.map((item) => ({
-      ...item,
-      nilai_aktual: '',
-    }))
+      // Jalankan semua update dan create secara parallel
+      if (detailUpdates.length > 0 || detailCreates.length > 0) {
+        await Promise.all([...detailUpdates, ...detailCreates])
+      }
+
+      toast.success('Data QA alkohol berhasil diperbarui.')
+      cancelEditingEntry()
+    } else {
+      const { data } = await axios.post('/api/lab-qa', payload)
+
+      toast.success(data?.message ?? 'Data QA alkohol berhasil disimpan.')
+      submitPreview.value = JSON.stringify(payload, null, 2)
+      resetFormParameterValues()
+    }
 
     await fetchHistory(activeStasiun.value, 1, false)
   } catch (error: any) {
-    toast.error(resolveRequestErrorMessage(error, 'Gagal menyimpan data QA alkohol.'))
+    const status = Number(error?.response?.status ?? 0)
+    const existingHeaderId = Number(error?.response?.data?.data?.existing_header_id ?? 0)
+    if (!isEditingEntry.value && status === 409 && Number.isFinite(existingHeaderId) && existingHeaderId > 0) {
+      const switched = await editHistoryEntryById(existingHeaderId)
+      if (switched) {
+        toast.info('Jam yang sama terdeteksi, otomatis masuk ke mode edit.')
+        return
+      }
+    }
+
+    toast.error(resolveRequestErrorMessage(error, isEditingEntry.value ? 'Gagal memperbarui data QA alkohol.' : 'Gagal menyimpan data QA alkohol.'))
   } finally {
     saving.value = false
+  }
+}
+
+async function editHistoryEntryById(headerId: number): Promise<boolean> {
+  if (!canEditEntry.value) {
+    toast.error('Data dengan jam yang sama sudah ada, tetapi Anda tidak memiliki akses edit.')
+    return false
+  }
+
+  if (!activeStasiun.value) return false
+
+  saving.value = true
+  try {
+    const { data } = await axios.get(`/api/lab-qa/${headerId}`)
+    const header = data?.data
+    if (!header) {
+      toast.error('Data entri QA alkohol tidak ditemukan.')
+      return false
+    }
+
+    editingHeaderId.value = Number(header.id)
+    form.tanggal = String(header.tanggal ?? form.tanggal)
+    form.jam = String(header.jam ?? '00:00:00').slice(0, 5)
+    form.shift = String(header.shift ?? '1')
+    form.petugas = String(header.petugas ?? '')
+
+    const detailIdMap: Record<number, number> = {}
+    const detailValueMap = new Map<number, string>()
+    const details = Array.isArray(header.details) ? header.details : []
+    details.forEach((detail: any) => {
+      const parameterId = Number(detail.parameter_id)
+      if (!Number.isFinite(parameterId)) return
+      detailIdMap[parameterId] = Number(detail.id)
+      detailValueMap.set(parameterId, detail.nilai_aktual === null || detail.nilai_aktual === undefined ? '' : String(detail.nilai_aktual))
+    })
+
+    editingDetailByParameterId.value = detailIdMap
+    form.parameters = parameterList.value.map((parameter) => ({
+      parameter_id: parameter.id,
+      nilai_aktual: detailValueMap.get(parameter.id) ?? '',
+    }))
+
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    return true
+  } catch (error: any) {
+    toast.error(resolveRequestErrorMessage(error, 'Gagal memuat data QA alkohol untuk diedit.'))
+    return false
+  } finally {
+    saving.value = false
+  }
+}
+
+async function editHistoryEntry(item: QaHistoryItem) {
+  const switched = await editHistoryEntryById(item.id)
+  if (switched) {
+    toast.info('Mode edit aktif. Ubah nilai lalu klik Simpan Perubahan.')
+  }
+}
+
+async function deleteHistoryEntry(item: QaHistoryItem) {
+  if (!canDeleteEntry.value) {
+    toast.error('Anda tidak memiliki akses untuk menghapus data QA alkohol.')
+    return
+  }
+
+  const confirmed = window.confirm(`Hapus entri QA alkohol tanggal ${formatTanggal(item.tanggal)} jam ${item.jam}?`)
+  if (!confirmed) return
+
+  deletingHeaderId.value = item.id
+  try {
+    await axios.delete(`/api/lab-qa/${item.id}`)
+
+    if (editingHeaderId.value === item.id) {
+      cancelEditingEntry()
+    }
+
+    toast.success('Data QA alkohol berhasil dihapus.')
+
+    if (activeStasiun.value) {
+      await fetchHistory(activeStasiun.value, 1, false)
+    }
+  } catch (error: any) {
+    toast.error(resolveRequestErrorMessage(error, 'Gagal menghapus data QA alkohol.'))
+  } finally {
+    deletingHeaderId.value = null
   }
 }
 
@@ -427,6 +595,8 @@ function scrollTabMenu(direction: 'left' | 'right') {
 watch(
   () => activeStasiun.value,
   async (stasiunId) => {
+    editingHeaderId.value = null
+    editingDetailByParameterId.value = {}
     parameterList.value = []
     form.parameters = []
 
@@ -528,7 +698,7 @@ onBeforeUnmount(() => {
     <div v-if="activeStasiun && currentStation" class="space-y-6">
       <div class="bg-white dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-800/50 rounded-xl shadow-sm">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800/50">
-          <h3 class="text-base font-semibold text-gray-800 dark:text-white">📋 Form Entri Data Analisa</h3>
+          <h3 class="text-base font-semibold text-gray-800 dark:text-white">📋 {{ isEditingEntry ? 'Edit Entri Data Analisa' : 'Form Entri Data Analisa' }}</h3>
           <span class="text-sm text-gray-500 dark:text-gray-400">
             Stasiun: <span class="font-semibold text-yellow-600 dark:text-yellow-400">{{ currentStation.label }}</span>
           </span>
@@ -681,26 +851,36 @@ onBeforeUnmount(() => {
             <div class="mt-5 border-t border-gray-100 dark:border-gray-800/50 pt-4">
               <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div class="text-sm text-gray-500 dark:text-gray-400">
-                  {{ hasAnyParameterValue ? 'Data siap diproses untuk disimpan.' : 'Isi minimal satu parameter sebelum submit.' }}
+                    {{ hasAnyParameterValue ? (isEditingEntry ? 'Perubahan siap disimpan.' : 'Data siap diproses untuk disimpan.') : 'Isi minimal satu parameter sebelum submit.' }}
                 </div>
-                <button
-                  type="button"
-                  :disabled="isSubmitDisabled"
-                  @click.prevent="submitForm"
-                  :class="[
-                    'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200',
-                    'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-sm hover:from-yellow-600 hover:to-yellow-700',
-                    'disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 disabled:opacity-50'
-                  ]"
-                >
-                  <svg v-if="!saving" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <svg v-else class="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  {{ saving ? 'Menyimpan...' : 'Simpan Entri QA' }}
-                </button>
+                  <div class="flex items-center gap-2">
+                    <button
+                      v-if="isEditingEntry"
+                      type="button"
+                      @click="cancelEditingEntry"
+                      class="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                    >
+                      Batal Edit
+                    </button>
+                    <button
+                      type="button"
+                      :disabled="isSubmitDisabled"
+                      @click.prevent="submitForm"
+                      :class="[
+                        'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200',
+                        'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-sm hover:from-yellow-600 hover:to-yellow-700',
+                        'disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 disabled:opacity-50'
+                      ]"
+                    >
+                      <svg v-if="!saving" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <svg v-else class="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      {{ saving ? 'Menyimpan...' : (isEditingEntry ? 'Simpan Perubahan' : 'Simpan Entri QA') }}
+                    </button>
+                  </div>
               </div>
             </div>
 
@@ -750,6 +930,7 @@ onBeforeUnmount(() => {
                     <th class="py-3 px-4">Petugas</th>
                     <th class="py-3 px-4">Total Parameter</th>
                     <th class="py-3 px-4">Status</th>
+                    <th v-if="canManageHistory" class="py-3 px-4 text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -771,6 +952,27 @@ onBeforeUnmount(() => {
                       <span :class="['text-xs font-semibold px-3 py-1 rounded-full inline-block', statusBadgeClass(alertCount(item))]">
                         {{ alertCount(item) > 0 ? `${alertCount(item)} Alert` : '✓ Aman' }}
                       </span>
+                    </td>
+                    <td v-if="canManageHistory" class="py-3 px-4">
+                      <div class="flex items-center justify-end gap-2">
+                        <button
+                          v-if="canEditEntry"
+                          type="button"
+                          @click="editHistoryEntry(item)"
+                          class="inline-flex items-center rounded-md border border-blue-200 dark:border-blue-800 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          v-if="canDeleteEntry"
+                          type="button"
+                          :disabled="deletingHeaderId === item.id"
+                          @click="deleteHistoryEntry(item)"
+                          class="inline-flex items-center rounded-md border border-red-200 dark:border-red-800 px-2.5 py-1 text-xs font-semibold text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-60"
+                        >
+                          {{ deletingHeaderId === item.id ? 'Menghapus...' : 'Hapus' }}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>

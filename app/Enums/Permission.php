@@ -8,6 +8,7 @@ enum Permission: string
     // DASHBOARD & MONITORING
     // ================================================================
     case DASHBOARD_VIEW           = 'dashboard.view';
+    case DASHBOARD_PENGAWASAN_QA_VIEW = 'dashboard.pengawasan_qa.view';
     case DASHBOARD_EXPORT         = 'dashboard.export';
 
     // ================================================================
@@ -81,16 +82,17 @@ enum Permission: string
     public function label(): string
     {
         return match($this) {
-            self::DASHBOARD_VIEW           => 'Akses Dashboard (Informasi Tebu, Monitoring Pabrik, Angka Pengawasan QA)',
+            self::DASHBOARD_VIEW           => 'Akses Dashboard (Informasi Tebu)',
+            self::DASHBOARD_PENGAWASAN_QA_VIEW => 'Akses Dashboard Angka Pengawasan QA',
             self::DASHBOARD_EXPORT         => 'Export Dashboard',
             self::PETA_KEBUN_VIEW          => 'Lihat Peta Kebun',
             self::PETA_KEBUN_CREATE        => 'Tambah Peta Kebun',
             self::PETA_KEBUN_UPDATE        => 'Edit Peta Kebun',
             self::PETA_KEBUN_DELETE        => 'Hapus Peta Kebun',
             self::LAB_QA_VIEW              => 'Akses Analisa QA (Entri Pabrik Gula & Alkohol)',
-            self::LAB_QA_CREATE            => 'Tambah Data Analisa QA',
-            self::LAB_QA_UPDATE            => 'Edit Data Analisa QA',
-            self::LAB_QA_DELETE            => 'Hapus Data Lab QA',
+            self::LAB_QA_CREATE            => 'Tambah Entri Data QA Pabrik Gula / Alkohol',
+            self::LAB_QA_UPDATE            => 'Edit Entri Data QA Pabrik Gula / Alkohol',
+            self::LAB_QA_DELETE            => 'Hapus Entri Data QA Pabrik Gula / Alkohol',
             self::LAB_QA_APPROVE           => 'Approve Lab QA',
             self::LAB_QA_EXPORT            => 'Export Lab QA',
             self::PENERIMAAN_VIEW          => 'Akses Penerimaan Tebu (Data SPA, Pengaturan EPOS, Monitoring Antrian, Data Pemasukan)',
@@ -156,6 +158,7 @@ enum Permission: string
     {
         return [
             self::DASHBOARD_VIEW->value,
+            self::DASHBOARD_PENGAWASAN_QA_VIEW->value,
             self::DASHBOARD_EXPORT->value,
             self::PETA_KEBUN_VIEW->value,
             self::LAB_QA_VIEW->value,
@@ -177,6 +180,7 @@ enum Permission: string
     {
         return [
             self::DASHBOARD_VIEW->value,
+            self::DASHBOARD_PENGAWASAN_QA_VIEW->value,
             self::PETA_KEBUN_VIEW->value,
             self::LAB_QA_VIEW->value,
             self::LAB_QA_CREATE->value,
@@ -200,6 +204,7 @@ enum Permission: string
     {
         return [
             self::DASHBOARD_VIEW->value,
+            self::DASHBOARD_PENGAWASAN_QA_VIEW->value,
             self::PETA_KEBUN_VIEW->value,
             self::LAB_QA_VIEW->value,
             self::PENERIMAAN_VIEW->value,

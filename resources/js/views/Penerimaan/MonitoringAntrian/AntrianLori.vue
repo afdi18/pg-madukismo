@@ -10,6 +10,7 @@ type LoriRow = {
   berat: number
   brtStlhRaf: number
   induk: string
+  nmktgr: string
   petani: string
   kebun: string
   tglMasuk: string
@@ -48,6 +49,7 @@ async function loadAntrianLori(isBackgroundRefresh = false) {
       berat: Number(row.kw_netto ?? 0),
       brtStlhRaf: Number(row.kw_netto ?? 0),
       induk: row.induk ?? '-',
+      nmktgr: row.nmktgr ?? '-',
       petani: row.petani ?? '-',
       kebun: row.kebun ?? '-',
       tglMasuk: row.tgl_msk ?? '-',
@@ -72,6 +74,10 @@ async function loadAntrianLori(isBackgroundRefresh = false) {
 const totalLori = computed(() => antrianLoriRows.value.length)
 const totalBeratLori = computed(() => antrianLoriRows.value.reduce((total, row) => total + row.berat, 0))
 const totalBeratLoriKuintal = computed(() => totalBeratLori.value)
+const totalLoriMerah = computed(() => {
+  // Lori merah adalah lori dengan lama tinggal > 36 jam
+  return antrianLoriRows.value.filter(row => row.lamaJam > 36).length
+})
 
 const sortedLoriRows = computed(() => {
   const rows = [...antrianLoriRows.value]
@@ -106,6 +112,7 @@ onBeforeUnmount(() => {
       <div class="rounded-xl border border-violet-200/70 bg-violet-50/80 px-4 py-3 dark:border-violet-500/30 dark:bg-violet-500/10">
         <p class="text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-white">Lori Aktif</p>
         <p class="mt-1 text-2xl font-extrabold text-violet-800 dark:text-white dark:[text-shadow:0_0_14px_rgba(255,255,255,0.35)]">{{ totalLori }} <span class="text-base font-bold text-violet-700 dark:text-violet-100">Rit</span></p>
+        <p class="mt-2 text-sm font-semibold text-violet-600 dark:text-violet-300">(Lori Merah: {{ totalLoriMerah }} Rit)</p>
       </div>
       <div class="rounded-xl border border-emerald-200/70 bg-emerald-50/80 px-4 py-3 dark:border-emerald-500/30 dark:bg-emerald-500/10">
         <p class="text-xs font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Total Berat</p>
@@ -126,6 +133,7 @@ onBeforeUnmount(() => {
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-right dark:bg-gray-800">Berat</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-right dark:bg-gray-800">Brt Stlh Raf</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Induk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Kategori</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Petani</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Kebun</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">Tgl Masuk</th>
@@ -161,6 +169,7 @@ onBeforeUnmount(() => {
               <td class="px-3 py-2 text-right">{{ row.berat }}</td>
               <td class="px-3 py-2 text-right">{{ row.brtStlhRaf }}</td>
               <td class="px-3 py-2">{{ row.induk }}</td>
+              <td class="px-3 py-2">{{ row.nmktgr }}</td>
               <td class="px-3 py-2">{{ row.petani }}</td>
               <td class="px-3 py-2">{{ row.kebun }}</td>
               <td class="px-3 py-2 text-center">{{ row.tglMasuk }}</td>

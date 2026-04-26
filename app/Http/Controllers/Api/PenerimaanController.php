@@ -115,6 +115,7 @@ class PenerimaanController extends Controller
                 no_lori,
                 kw_netto,
                 a.induk,
+                c.nmktgr,
                 b.petani,
                 b.kebun,
                 CONVERT(varchar, tgl_msk, 103) as tgl_msk,
@@ -122,7 +123,8 @@ class PenerimaanController extends Controller
                 DATEDIFF(HOUR, tgl_msk, GETDATE()) as lama
             FROM TBL_TEBUMSK a
             INNER JOIN TBL_MSTKEBUN b ON a.induk = b.induk
-            WHERE NOT NO_LORI IS NULL AND NOT NETTO IS NULL
+            INNER JOIN TBL_KTGR c ON b.IDSTT=c.IDKTGR
+            WHERE NOT NO_LORI IS NULL AND NOT NETTO IS NULL AND HR_GIL IS NULL
             ORDER BY tgl_msk ASC
         ";
 
@@ -152,6 +154,7 @@ class PenerimaanController extends Controller
                 a.spa,
                 a.nopol,
                 a.induk,
+                c.nmktgr,
                 b.petani,
                 b.kebun,
                 CONVERT(varchar, tgl_msk, 103) as tgl_msk,
@@ -159,6 +162,7 @@ class PenerimaanController extends Controller
                 DATEDIFF(HOUR, tgl_msk, GETDATE()) as lama
             FROM TBL_TEBUMSK a
             INNER JOIN TBL_MSTKEBUN b ON a.induk = b.induk
+            INNER JOIN TBL_KTGR c ON b.IDSTT=c.IDKTGR
             WHERE NOT a.BRUTTO IS NULL AND TARA IS NULL AND NO_LORI IS NULL
             ORDER BY tgl_msk ASC
         ";
@@ -189,6 +193,7 @@ class PenerimaanController extends Controller
                 a.spa,
                 a.nopol,
                 a.induk,
+                c.nmktgr,
                 b.petani,
                 b.kebun,
                 CONVERT(varchar, tgl_msk, 103) as tgl_msk,
@@ -196,6 +201,7 @@ class PenerimaanController extends Controller
                 DATEDIFF(HOUR, tgl_msk, GETDATE()) as lama
             FROM TBL_TEBUMSK a
             INNER JOIN TBL_MSTKEBUN b ON a.induk = b.induk
+            INNER JOIN TBL_KTGR c ON b.IDSTT=c.IDKTGR
             WHERE NOT a.TGL_MSK IS NULL AND a.BRUTTO IS NULL
             ORDER BY tgl_msk ASC
         ";

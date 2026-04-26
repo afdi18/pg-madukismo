@@ -67,7 +67,7 @@ const menuAccessGroups: MenuAccessGroup[] = [
     items: [
       { key: 'dashboard-informasi-tebu', label: 'Informasi Tebu', permissionNames: ['dashboard.view'] },
       { key: 'dashboard-monitoring-pabrik', label: 'Monitoring Pabrik', permissionNames: ['operasional.view'] },
-      { key: 'dashboard-pengawasan-qa', label: 'Angka Pengawasan QA', permissionNames: ['lab_qa.view'] },
+      { key: 'dashboard-pengawasan-qa', label: 'Angka Pengawasan QA', permissionNames: ['dashboard.pengawasan_qa.view'] },
     ],
   },
   {
@@ -96,14 +96,19 @@ const menuAccessGroups: MenuAccessGroup[] = [
     label: 'Analisa QA',
     items: [
       {
-        key: 'analisa-qa-gula',
-        label: 'Pabrik Gula',
-        permissionNames: ['lab_qa.view', 'lab_qa.create', 'lab_qa.update'],
+        key: 'analisa-qa-akses-entri',
+        label: 'Akses Entri Data Pabrik Gula / Alkohol',
+        permissionNames: ['lab_qa.view', 'lab_qa.create'],
       },
       {
-        key: 'analisa-qa-alkohol',
-        label: 'Pabrik Alkohol',
-        permissionNames: ['lab_qa.view', 'lab_qa.create', 'lab_qa.update'],
+        key: 'analisa-qa-edit-entri',
+        label: 'Edit Entri Data Pabrik Gula / Alkohol',
+        permissionNames: ['lab_qa.update'],
+      },
+      {
+        key: 'analisa-qa-hapus-entri',
+        label: 'Hapus Entri Data Pabrik Gula / Alkohol',
+        permissionNames: ['lab_qa.delete'],
       },
     ],
   },

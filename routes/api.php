@@ -44,6 +44,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/kpi',                 [DashboardController::class, 'kpiSummary']);
         Route::get('/perbandingan-musim',  [DashboardController::class, 'perbandinganMusim']);
         Route::get('/musim-list',          [DashboardController::class, 'musimList']);
+        Route::get('/data-digiling',       [DashboardController::class, 'dataDigilingPerJam']);
+        Route::get('/tebu-digiling-sampai-hari-ini', [DashboardController::class, 'tebuDigilingSampaiBariIni']);
+          Route::get('/antrian-summary', [DashboardController::class, 'antrianSummaryDashboard']);
     });
 
     // Dashboard Export (butuh permission tambahan)
@@ -123,7 +126,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         // Dashboard monitoring (hourly pivot)
         Route::get('/dashboard-monitoring', [\App\Http\Controllers\Api\LabQaController::class, 'dashboardMonitoring'])
-             ->middleware(AbacMiddleware::class . ':lab_qa.view');
+             ->middleware(AbacMiddleware::class . ':dashboard.pengawasan_qa.view');
 
         // Header QA
         Route::get('/',         [\App\Http\Controllers\Api\LabQaController::class, 'index'])
@@ -138,6 +141,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
              ->middleware(AbacMiddleware::class . ':lab_qa.delete');
 
         // Detail QA
+        Route::post('/{qaHeader}/details', [\App\Http\Controllers\Api\LabQaController::class, 'storeDetail'])
+             ->middleware(AbacMiddleware::class . ':lab_qa.update');
         Route::put('/detail/{qaDetail}', [\App\Http\Controllers\Api\LabQaController::class, 'updateDetail'])
              ->middleware(AbacMiddleware::class . ':lab_qa.update');
         Route::delete('/detail/{qaDetail}', [\App\Http\Controllers\Api\LabQaController::class, 'destroyDetail'])

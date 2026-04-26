@@ -7,6 +7,7 @@ type QueueRow = {
   spa: string
   noTruk: string
   induk: string
+  nmktgr: string
   petani: string
   kebun: string
   tglMasuk: string
@@ -40,6 +41,7 @@ async function loadAntrianTrukSudahTimbang(isBackgroundRefresh = false) {
       spa: row.spa ?? '-',
       noTruk: String(row.nopol ?? '-').toUpperCase(),
       induk: row.induk ?? '-',
+      nmktgr: row.nmktgr ?? '-',
       petani: row.petani ?? '-',
       kebun: row.kebun ?? '-',
       tglMasuk: row.tgl_msk ?? '-',
@@ -75,6 +77,7 @@ async function loadAntrianTrukBelumTimbang(isBackgroundRefresh = false) {
       spa: row.spa ?? '-',
       noTruk: String(row.nopol ?? '-').toUpperCase(),
       induk: row.induk ?? '-',
+      nmktgr: row.nmktgr ?? '-',
       petani: row.petani ?? '-',
       kebun: row.kebun ?? '-',
       tglMasuk: row.tgl_msk ?? '-',
@@ -99,6 +102,16 @@ async function loadAntrianTrukBelumTimbang(isBackgroundRefresh = false) {
 const totalSudah = computed(() => sudahTimbangRows.value.length)
 const totalBelum = computed(() => belumTimbangRows.value.length)
 const totalSemua = computed(() => totalSudah.value + totalBelum.value)
+
+function beratPerTrukByKategori(nmktgr: string): number {
+  return String(nmktgr ?? '').trim().toUpperCase() === 'TRK B' ? 80 : 60
+}
+
+const totalEstimasiBerat = computed(() => {
+  const semuaRows = [...sudahTimbangRows.value, ...belumTimbangRows.value]
+  const total = semuaRows.reduce((sum, row) => sum + beratPerTrukByKategori(row.nmktgr), 0)
+  return total.toLocaleString('id-ID')
+})
 
 const sortedSudahRows = computed(() => {
   const rows = [...sudahTimbangRows.value]
@@ -139,18 +152,22 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="p-4 space-y-5">
-    <section class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <section class="grid grid-cols-1 sm:grid-cols-4 gap-3">
       <div class="rounded-xl border border-emerald-200/70 bg-emerald-50/80 px-4 py-3 dark:border-emerald-500/30 dark:bg-emerald-500/10">
         <p class="text-xs font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Antrian Sdh Timb 1</p>
         <p class="mt-1 text-2xl font-bold text-emerald-800 dark:text-emerald-200">{{ totalSudah }} <span class="text-base font-semibold">Rit</span></p>
       </div>
       <div class="rounded-xl border border-amber-200/70 bg-amber-50/80 px-4 py-3 dark:border-amber-500/30 dark:bg-amber-500/10">
         <p class="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300">Antrian Blm Timb 1</p>
-        <p class="mt-1 text-2xl font-bold text-amber-800 dark:text-amber-200">{{ totalBelum }} <span class="text-base font-semibold">Rit</span></p>
+        <p class="mt-1 text-2xl font-bold text-amber-800 dark:text-amber-200">{{ totalBelum }} <span class="text-base font-semibold">Rit / - </span><span class="text-base font-semibold">Ku</span></p>
       </div>
       <div class="rounded-xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 dark:border-sky-500/30 dark:bg-sky-500/10">
-        <p class="text-xs font-medium uppercase tracking-wide text-sky-700 dark:text-sky-300">Jumlah</p>
+        <p class="text-xs font-medium uppercase tracking-wide text-sky-700 dark:text-sky-300">Jumlah Antrian Truk</p>
         <p class="mt-1 text-2xl font-bold text-sky-800 dark:text-sky-200">{{ totalSemua }} <span class="text-base font-semibold">Rit</span></p>
+      </div>
+      <div class="rounded-xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 dark:border-sky-500/30 dark:bg-sky-500/10">
+        <p class="text-xs font-medium uppercase tracking-wide text-sky-700 dark:text-sky-300">Estimasi Berat</p>
+        <p class="mt-1 text-2xl font-bold text-sky-800 dark:text-sky-200">{{ totalEstimasiBerat }} <span class="text-base font-semibold">Ku</span></p>
       </div>
     </section>
 
@@ -164,6 +181,7 @@ onBeforeUnmount(() => {
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">SPA</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">No Truk</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Induk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Kategori</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Petani</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Kebun</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">Tgl Masuk</th>
@@ -178,13 +196,13 @@ onBeforeUnmount(() => {
           </thead>
           <tbody class="dark:text-slate-100">
             <tr v-if="initialLoading">
-              <td colspan="9" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Memuat data antrian truk...</td>
+              <td colspan="10" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Memuat data antrian truk...</td>
             </tr>
             <tr v-else-if="errorMessage && sudahTimbangRows.length === 0">
-              <td colspan="9" class="px-3 py-6 text-center text-red-600 dark:text-red-400">{{ errorMessage }}</td>
+              <td colspan="10" class="px-3 py-6 text-center text-red-600 dark:text-red-400">{{ errorMessage }}</td>
             </tr>
             <tr v-else-if="sudahTimbangRows.length === 0">
-              <td colspan="9" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Belum ada data antrian truk sudah timbang.</td>
+              <td colspan="10" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Belum ada data antrian truk sudah timbang.</td>
             </tr>
             <tr
               v-for="(row, index) in sortedSudahRows"
@@ -196,6 +214,7 @@ onBeforeUnmount(() => {
               <td class="px-3 py-2">{{ row.spa }}</td>
               <td class="px-3 py-2">{{ row.noTruk }}</td>
               <td class="px-3 py-2">{{ row.induk }}</td>
+              <td class="px-3 py-2">{{ row.nmktgr }}</td>
               <td class="px-3 py-2">{{ row.petani }}</td>
               <td class="px-3 py-2">{{ row.kebun }}</td>
               <td class="px-3 py-2 text-center">{{ row.tglMasuk }}</td>
@@ -217,6 +236,7 @@ onBeforeUnmount(() => {
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">SPA</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">No Truk</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Induk</th>
+              <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Kategori</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Petani</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-left dark:bg-gray-800">Kebun</th>
               <th class="sticky top-0 z-10 bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">Tgl Masuk</th>
@@ -231,13 +251,13 @@ onBeforeUnmount(() => {
           </thead>
           <tbody class="dark:text-slate-100">
             <tr v-if="initialLoadingBelum">
-              <td colspan="9" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Memuat data antrian truk...</td>
+              <td colspan="10" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Memuat data antrian truk...</td>
             </tr>
             <tr v-else-if="errorMessageBelum && belumTimbangRows.length === 0">
-              <td colspan="9" class="px-3 py-6 text-center text-red-600 dark:text-red-400">{{ errorMessageBelum }}</td>
+              <td colspan="10" class="px-3 py-6 text-center text-red-600 dark:text-red-400">{{ errorMessageBelum }}</td>
             </tr>
             <tr v-else-if="belumTimbangRows.length === 0">
-              <td colspan="9" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Belum ada data antrian truk belum timbang.</td>
+              <td colspan="10" class="px-3 py-6 text-center text-slate-500 dark:text-slate-300">Belum ada data antrian truk belum timbang.</td>
             </tr>
             <tr
               v-for="(row, index) in sortedBelumRows"
@@ -249,6 +269,7 @@ onBeforeUnmount(() => {
               <td class="px-3 py-2">{{ row.spa }}</td>
               <td class="px-3 py-2">{{ row.noTruk }}</td>
               <td class="px-3 py-2">{{ row.induk }}</td>
+              <td class="px-3 py-2">{{ row.nmktgr }}</td>
               <td class="px-3 py-2">{{ row.petani }}</td>
               <td class="px-3 py-2">{{ row.kebun }}</td>
               <td class="px-3 py-2 text-center">{{ row.tglMasuk }}</td>

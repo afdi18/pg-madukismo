@@ -32,7 +32,7 @@ const router = createRouter({
                     component: () => import('@/views/Dashboard/Index.vue'),
                     meta: {
                         title: 'Dashboard Monitoring',
-                        permission: 'dashboard.view|operasional.view|lab_qa.view',
+                        permission: 'dashboard.view|operasional.view|dashboard.pengawasan_qa.view|lab_qa.view',
                     },
                 },
                 {
@@ -63,7 +63,7 @@ const router = createRouter({
                     component: () => import('@/views/Dashboard/PengawasanQA.vue'),
                     meta: {
                         title: 'Dashboard Pengawasan QA',
-                        permission: 'lab_qa.view',
+                        permission: 'dashboard.pengawasan_qa.view',
                     },
                 },
 

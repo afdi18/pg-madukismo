@@ -142,6 +142,21 @@ class LabQaController extends Controller
             'parameters.min'      => 'Minimal harus ada satu parameter data QA.',
         ]);
 
+        $existingHeader = QaHeader::query()
+            ->where('stasiun_id', $validated['stasiun_id'])
+            ->whereDate('tanggal', $validated['tanggal'])
+            ->where('jam', $validated['jam'])
+            ->first();
+
+        if ($existingHeader) {
+            return response()->json([
+                'message' => 'Entri QA pada jam yang sama sudah ada. Silakan lanjutkan melalui mode edit.',
+                'data' => [
+                    'existing_header_id' => $existingHeader->id,
+                ],
+            ], 409);
+        }
+
         // ================================================================
         // TRANSAKSI DB: SIMPAN HEADER + DETAIL DENGAN PENGECEKAN ALERT
         // ================================================================
@@ -208,6 +223,22 @@ class LabQaController extends Controller
             'petugas' => ['required', 'string', 'max:100'],
         ]);
 
+        $existingHeader = QaHeader::query()
+            ->where('stasiun_id', $qaHeader->stasiun_id)
+            ->whereDate('tanggal', $validated['tanggal'])
+            ->where('jam', $validated['jam'])
+            ->where('id', '!=', $qaHeader->id)
+            ->first();
+
+        if ($existingHeader) {
+            return response()->json([
+                'message' => 'Jam entri QA sudah digunakan oleh data lain. Gunakan jam yang berbeda atau edit data yang sudah ada.',
+                'data' => [
+                    'existing_header_id' => $existingHeader->id,
+                ],
+            ], 409);
+        }
+
         $qaHeader->update($validated);
 
         return response()->json([
@@ -249,6 +280,62 @@ class LabQaController extends Controller
             'message' => 'Data detail QA berhasil diperbarui. Status alert sudah dikonfirmasi ulang.',
             'data'    => $qaDetail->fresh(['parameter.stasiun']),
         ]);
+    }
+
+    /**
+     * Buat detail baru untuk QA Header yang sudah ada
+     * Endpoint digunakan saat edit: menambah parameter baru yang sebelumnya tidak ada
+     * 
+     * POST /api/lab-qa/{headerId}/details
+     * Body: { "parameter_id": 1, "nilai_aktual": 45.5 }
+     */
+    public function storeDetail(Request $request, QaHeader $qaHeader): JsonResponse
+    {
+        $validated = $request->validate([
+            'parameter_id'  => ['required', 'integer', 'exists:pgsql.mst_parameter,id'],
+            'nilai_aktual'  => ['nullable', 'numeric'],
+        ]);
+
+        // Pastikan parameter ini valid untuk stasiun header ini
+        $parameter = Parameter::query()
+            ->where('id', $validated['parameter_id'])
+            ->where('stasiun_id', $qaHeader->stasiun_id)
+            ->first();
+
+        if (!$parameter) {
+            return response()->json([
+                'message' => 'Parameter tidak valid untuk stasiun ini.',
+            ], 422);
+        }
+
+        // Cek apakah detail sudah ada untuk parameter ini (jika ada, berarti duplikat)
+        $existingDetail = QaDetail::query()
+            ->where('header_id', $qaHeader->id)
+            ->where('parameter_id', $validated['parameter_id'])
+            ->first();
+
+        if ($existingDetail) {
+            return response()->json([
+                'message' => 'Detail untuk parameter ini sudah ada. Gunakan endpoint update jika ingin mengubur nilai.',
+                'data' => ['detail_id' => $existingDetail->id],
+            ], 409);
+        }
+
+        // RE-CHECK ALERT sebelum simpan
+        $statusAlert = QaDetail::checkAlert($parameter, $validated['nilai_aktual'] !== null ? (float)$validated['nilai_aktual'] : null);
+
+        // SIMPAN DETAIL BARU
+        $qaDetail = QaDetail::create([
+            'header_id'    => $qaHeader->id,
+            'parameter_id' => $validated['parameter_id'],
+            'nilai_aktual' => $validated['nilai_aktual'],
+            'status_alert' => $statusAlert,
+        ]);
+
+        return response()->json([
+            'message' => 'Parameter baru berhasil ditambahkan ke entri QA.',
+            'data'    => $qaDetail->fresh(['parameter.stasiun']),
+        ], 201);
     }
 
     /**
@@ -366,6 +453,15 @@ class LabQaController extends Controller
                         : round(array_sum($allVals) / count($allVals), 2);
                 }
 
+                // Hitung pagi/siang/malam: SUM untuk kuintal, AVG untuk yang lain
+                $pagiSum = !empty($pagiVals) ? round(array_sum($pagiVals), 2) : null;
+                $siangSum = !empty($siangVals) ? round(array_sum($siangVals), 2) : null;
+                $malamSum = !empty($malamVals) ? round(array_sum($malamVals), 2) : null;
+
+                $pagiAvg = !empty($pagiVals) ? round(array_sum($pagiVals) / count($pagiVals), 2) : null;
+                $siangAvg = !empty($siangVals) ? round(array_sum($siangVals) / count($siangVals), 2) : null;
+                $malamAvg = !empty($malamVals) ? round(array_sum($malamVals) / count($malamVals), 2) : null;
+
                 $params[] = [
                     'id'               => $param->id,
                     'nama_parameter'   => $param->nama_parameter,
@@ -375,9 +471,9 @@ class LabQaController extends Controller
                     'batas_bawah'      => $param->batas_bawah,
                     'batas_atas'       => $param->batas_atas,
                     'data'             => $hourData,
-                    'pagi_avg'         => !empty($pagiVals)  ? round(array_sum($pagiVals)  / count($pagiVals),  2) : null,
-                    'siang_avg'        => !empty($siangVals) ? round(array_sum($siangVals) / count($siangVals), 2) : null,
-                    'malam_avg'        => !empty($malamVals) ? round(array_sum($malamVals) / count($malamVals), 2) : null,
+                    'pagi_avg'         => $isKuintal ? $pagiSum : $pagiAvg,
+                    'siang_avg'        => $isKuintal ? $siangSum : $siangAvg,
+                    'malam_avg'        => $isKuintal ? $malamSum : $malamAvg,
                     'jml_rt2'          => $jmlRt2,
                 ];
             }

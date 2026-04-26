@@ -58,7 +58,7 @@ const navItems = computed<NavItem[]>(() => [
         children: [
           { label: 'Informasi Tebu', path: '/dashboard/informasi-tebu', permission: 'dashboard.view' },
           { label: 'Monitoring Pabrik', path: '/dashboard/monitoring-pabrik', permission: 'operasional.view' },
-          { label: 'Angka Pengawasan QA', path: '/dashboard/pengawasan-qa', permission: 'lab_qa.view' },
+          { label: 'Angka Pengawasan QA', path: '/dashboard/pengawasan-qa', permission: 'dashboard.pengawasan_qa.view' },
         ],
     },
     {
