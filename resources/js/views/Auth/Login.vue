@@ -58,7 +58,7 @@ async function handleLogin() {
         </div>
 
         <h1 class="text-4xl font-bold text-white mb-3 drop-shadow">
-          PG Madukismo
+          PG-PS Madukismo - KSO Madubaru
         </h1>
         <p class="text-xl text-yellow-100 font-medium mb-2">
           Dashboard Monitoring

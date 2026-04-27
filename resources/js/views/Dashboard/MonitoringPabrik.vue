@@ -14,24 +14,7 @@ const updatedAt = ref(new Date().toLocaleString('id-ID'))
 const wsStatus = ref<WsStatus>('disconnected')
 const wsError = ref('')
 const wsPayload = ref<RealtimePayload | null>(null)
-const WS_LOCAL = 'ws://10.10.1.151:3000'
-const WS_PUBLIC = 'ws://36.67.9.117:3000'
-// Coba koneksi ke WS lokal dengan timeout; jika berhasil gunakan lokal, jika tidak fallback ke publik.
-function probeLocalWs(timeout = 2000): Promise<boolean> {
-  return new Promise((resolve) => {
-    let settled = false
-    const probe = new WebSocket(WS_LOCAL)
-    const timer = setTimeout(() => {
-      if (!settled) { settled = true; probe.close(); resolve(false) }
-    }, timeout)
-    probe.onopen = () => {
-      if (!settled) { settled = true; clearTimeout(timer); probe.close(); resolve(true) }
-    }
-    probe.onerror = () => {
-      if (!settled) { settled = true; clearTimeout(timer); resolve(false) }
-    }
-  })
-}
+const wsUrl = 'ws://36.67.9.117:3000'
 let websocket: WebSocket | null = null
 
 const authStore = useAuthStore()
@@ -202,13 +185,13 @@ function applyRealtimePayload(payload: RealtimePayload) {
   tekananUapBekas.value = formatRealtimeNumber(uapBekas, 2)
   totalSteamFlow.value = totalSteamFlowSum > 0 ? formatRealtimeNumber(totalSteamFlowSum, 2) : 'NA'
 
-  // boilerOverview.value = boilerOverview.value.map((item) => {
-  //   if (item.label === 'Water Flow') {
-  //     return { ...item, value: '0,00' }
-  //   }
+  boilerOverview.value = boilerOverview.value.map((item) => {
+    if (item.label === 'Water Flow') {
+      return { ...item, value: '0,00' }
+    }
 
-  //   return item
-  // })
+    return item
+  })
 
   millOverview.value = millOverview.value.map((item) => {
     if (item.label === 'Tekanan Uap Bekas Evapo') {
@@ -274,7 +257,7 @@ function disconnectWebSocket() {
   websocket = null
 }
 
-async function connectWebSocket(forceReconnect = false) {
+function connectWebSocket(forceReconnect = false) {
   if (!canAccessRealtimeMonitoring.value) return
 
   if (websocket && websocket.readyState === WebSocket.OPEN && !forceReconnect) return
@@ -283,9 +266,6 @@ async function connectWebSocket(forceReconnect = false) {
 
   wsStatus.value = 'connecting'
   wsError.value = ''
-
-  const useLocal = await probeLocalWs()
-  const wsUrl = useLocal ? WS_LOCAL : WS_PUBLIC
 
   websocket = new WebSocket(wsUrl)
 
@@ -546,7 +526,9 @@ onBeforeUnmount(() => {
             <p
               :class="[
                 'text-sm font-bold',
-                isMillGilingLive ? 'text-emerald-700 dark:text-emerald-300' : 'text-gray-600 dark:text-gray-300',
+                isMillGilingLive
+                  ? 'animate-pulse text-emerald-700 dark:text-emerald-300'
+                  : 'text-gray-600 dark:text-gray-300',
               ]"
             >
               {{ isMillGilingLive ? 'GILING LIVE' : 'GILING BELUM LIVE' }}
