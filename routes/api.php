@@ -68,7 +68,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
                    ->middleware(AbacMiddleware::class . ':penerimaan.antrian.view');
               Route::get('/pemasukan-kategori', [\App\Http\Controllers\Api\PenerimaanController::class, 'pemasukanKategori'])
                    ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
+              Route::get('/pemasukan-wilayah', [\App\Http\Controllers\Api\PenerimaanController::class, 'pemasukanWilayah'])
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
               Route::get('/pemasukan-kebun', [\App\Http\Controllers\Api\PenerimaanController::class, 'pemasukanKebun'])
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
+              Route::get('/default-hari', [\App\Http\Controllers\Api\PenerimaanController::class, 'defaultHari'])
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
+              Route::get('/sisa-pagi', [\App\Http\Controllers\Api\PenerimaanController::class, 'sisaPagi'])
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
+              Route::get('/digiling-per-spa', [\App\Http\Controllers\Api\PenerimaanController::class, 'digilingPerSpa'])
                    ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
      });
 

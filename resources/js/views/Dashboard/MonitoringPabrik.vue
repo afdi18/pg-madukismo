@@ -46,12 +46,6 @@ const boilerUnits = ref([
   { boiler: 'Boiler EKM 5', steamPressure: '-', furnaceTemp: '-', waterFlow: '-', steamFlow: '-' },
 ])
 
-const millOverview = ref([
-  { label: 'Steam Pressure', value: '-', unit: 'Kg/cm²' },
-  { label: 'Tekanan Uap Bekas Evapo', value: '-', unit: 'Kg/cm²' },
-  { label: 'Temp Uap Bekas Evapo', value: '-', unit: '°C' },
-])
-
 const millStations = ref([
   { station: 'Gilingan 1', ampereMotor: '-', rpmMotor: '-', steamCharge: '-', rpmTurbin: '-' },
   { station: 'Gilingan 2', ampereMotor: '-', rpmMotor: '-', steamCharge: '-', rpmTurbin: '-' },
@@ -188,14 +182,6 @@ function applyRealtimePayload(payload: RealtimePayload) {
   boilerOverview.value = boilerOverview.value.map((item) => {
     if (item.label === 'Water Flow') {
       return { ...item, value: '0,00' }
-    }
-
-    return item
-  })
-
-  millOverview.value = millOverview.value.map((item) => {
-    if (item.label === 'Tekanan Uap Bekas Evapo') {
-      return { ...item, value: formatRealtimeNumber(uapBekas, 2) }
     }
 
     return item
@@ -528,10 +514,10 @@ onBeforeUnmount(() => {
                 'text-sm font-bold',
                 isMillGilingLive
                   ? 'animate-pulse text-emerald-700 dark:text-emerald-300'
-                  : 'text-gray-600 dark:text-gray-300',
+                  : 'text-red-600 dark:text-red-400',
               ]"
             >
-              {{ isMillGilingLive ? 'GILING LIVE' : 'GILING BELUM LIVE' }}
+              {{ isMillGilingLive ? 'GILING LIVE' : 'GILING BERHENTI' }}
             </p>
           </div>
           <span
@@ -539,26 +525,11 @@ onBeforeUnmount(() => {
               'rounded-full px-2.5 py-1 text-xs font-semibold',
               isMillGilingLive
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
+                : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
             ]"
           >
             RPM aktif: {{ millRpmActiveCount }}/5
           </span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <div
-          v-for="item in millOverview"
-          :key="item.label"
-          class="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
-        >
-          <div class="mb-2 inline-flex rounded-lg bg-green-50 p-2 text-green-600 dark:bg-green-900/20 dark:text-green-400">
-            <GaugeIcon class="h-4 w-4" />
-          </div>
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{{ item.label }}</p>
-          <p class="mt-1 text-2xl font-bold text-gray-800 dark:text-white">{{ item.value }}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">{{ item.unit }}</p>
         </div>
       </div>
 

@@ -285,4 +285,128 @@ class PenerimaanController extends Controller
 
         return response()->json($payload, 200, [], $jsonOptions);
     }
+
+    /**
+     * Return pemasukan per wilayah from SQL Server SP Proc_Psmk_Wil.
+     * Parameter tanggal format: mm/dd/yyyy
+     */
+    public function pemasukanWilayah(Request $request)
+    {
+        $tanggal = (string) $request->query('tanggal', '');
+        if ($tanggal === '') {
+            $tanggal = now()->format('m/d/Y');
+        }
+
+        if (!preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $tanggal)) {
+            return response()->json(['error' => 'Format tanggal harus mm/dd/yyyy'], 422);
+        }
+
+        $rows = DB::connection('sqlsrv')->select('EXEC Proc_Psmk_Wil ?', [$tanggal]);
+
+        $payload = [
+            'data' => $rows,
+            'meta' => ['tanggal' => $tanggal],
+        ];
+
+        $jsonOptions = defined('JSON_PARTIAL_OUTPUT_ON_ERROR') ? JSON_PARTIAL_OUTPUT_ON_ERROR : 0;
+        if (defined('JSON_INVALID_UTF8_IGNORE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_IGNORE;
+        } elseif (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+
+        return response()->json($payload, 200, [], $jsonOptions);
+    }
+
+    /**
+     * Return default HRGIL & HRPEM dari TBL_DEFAULT (SETT=1).
+     */
+    public function defaultHari()
+    {
+        $row = DB::connection('sqlsrv')->selectOne(
+            'SELECT TOP 1 HRGIL, HRPEM, MINPEM FROM TBL_DEFAULT WHERE SETT = 1'
+        );
+
+        $minPem = isset($row->MINPEM) ? (int) $row->MINPEM : 4;
+
+        return response()->json([
+            'hr_gil' => isset($row->HRGIL) ? (int) $row->HRGIL : 1,
+            'hr_pem' => isset($row->HRPEM) ? (int) $row->HRPEM : $minPem,
+            'min_pem' => $minPem,
+        ]);
+    }
+
+    /**
+     * Return sisa pagi lori dari SP SisaPagiLoriTot.
+     * Parameter: hr_gil (integer), hr_pem (integer)
+     */
+    public function sisaPagi(Request $request)
+    {
+        // Ambil default dari TBL_DEFAULT jika param tidak dikirim
+        $defaultRow = DB::connection('sqlsrv')->selectOne(
+            'SELECT TOP 1 HRGIL, HRPEM, MINPEM FROM TBL_DEFAULT WHERE SETT = 1'
+        );
+        $defaultHrGil = isset($defaultRow->HRGIL) ? (int) $defaultRow->HRGIL : 1;
+        $defaultHrPem = isset($defaultRow->HRPEM) ? (int) $defaultRow->HRPEM : (int) $defaultRow->MINPEM;
+
+        $hrGil = $request->query('hr_gil', $defaultHrGil);
+        $hrPem = $request->query('hr_pem', $defaultHrPem);
+
+        $rows = DB::connection('sqlsrv')->select(
+            'EXEC SisaPagiLoriTot ?, ?',
+            [$hrPem,$hrGil]
+        );
+
+        $payload = [
+            'data' => $rows,
+            'meta' => [
+                'hr_gil' => $hrGil,
+                'hr_pem' => $hrPem,
+            ],
+        ];
+
+        $jsonOptions = defined('JSON_PARTIAL_OUTPUT_ON_ERROR') ? JSON_PARTIAL_OUTPUT_ON_ERROR : 0;
+        if (defined('JSON_INVALID_UTF8_IGNORE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_IGNORE;
+        } elseif (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+
+        return response()->json($payload, 200, [], $jsonOptions);
+    }
+
+    /**
+     * Return data digiling per SPA dari SP Proc_Gil_PerSpa.
+     * Parameter: hr_gil (maksimum mengikuti HRGIL pada TBL_DEFAULT)
+     */
+    public function digilingPerSpa(Request $request)
+    {
+        $defaultRow = DB::connection('sqlsrv')->selectOne(
+            'SELECT TOP 1 HRGIL FROM TBL_DEFAULT WHERE SETT = 1'
+        );
+
+        $maxHrGil = isset($defaultRow->HRGIL) ? max(1, (int) $defaultRow->HRGIL) : 1;
+        $requestedHrGil = (int) $request->query('hr_gil', $maxHrGil);
+        $hrGil = min($maxHrGil, max(1, $requestedHrGil));
+        $hrGilPadded = str_pad((string) $hrGil, 3, '0', STR_PAD_LEFT);
+
+        $rows = DB::connection('sqlsrv')->select('EXEC Proc_Gil_PerSpa ?', [$hrGilPadded]);
+
+        $payload = [
+            'data' => $rows,
+            'meta' => [
+                'hr_gil' => $hrGil,
+                'max_hr_gil' => $maxHrGil,
+            ],
+        ];
+
+        $jsonOptions = defined('JSON_PARTIAL_OUTPUT_ON_ERROR') ? JSON_PARTIAL_OUTPUT_ON_ERROR : 0;
+        if (defined('JSON_INVALID_UTF8_IGNORE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_IGNORE;
+        } elseif (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+
+        return response()->json($payload, 200, [], $jsonOptions);
+    }
 }

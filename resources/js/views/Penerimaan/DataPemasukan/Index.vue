@@ -2,8 +2,11 @@
 import { ref } from 'vue'
 import PemasukanPerKebun from './PemasukanPerKebun.vue'
 import PemasukanPerKategori from './PemasukanPerKategori.vue'
+import PemasukanPerWilayah from './PemasukanPerWilayah.vue'
+import SisaPagi from './SisaPagi.vue'
+import DigilingPerSpa from './DigilingPerSpa.vue'
 
-const activeTab = ref<'kebun' | 'kategori'>('kebun')
+const activeTab = ref<'kebun' | 'kategori' | 'wilayah' | 'sisa-pagi' | 'digiling-spa'>('kebun')
 </script>
 
 <template>
@@ -45,11 +48,50 @@ const activeTab = ref<'kebun' | 'kategori'>('kebun')
           >
             Pemasukan per Kategori
           </button>
+          <button
+            @click="activeTab = 'wilayah'"
+            :class="[
+              'relative px-3 sm:px-4 lg:px-5 py-4 text-xs sm:text-sm font-medium transition-all duration-300 shrink-0 whitespace-nowrap',
+              activeTab === 'wilayah'
+                ? 'text-yellow-600 dark:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-yellow-400 after:to-yellow-600'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
+            ]"
+            type="button"
+          >
+            Pemasukan per Wilayah
+          </button>
+          <button
+            @click="activeTab = 'sisa-pagi'"
+            :class="[
+              'relative px-3 sm:px-4 lg:px-5 py-4 text-xs sm:text-sm font-medium transition-all duration-300 shrink-0 whitespace-nowrap',
+              activeTab === 'sisa-pagi'
+                ? 'text-yellow-600 dark:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-yellow-400 after:to-yellow-600'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
+            ]"
+            type="button"
+          >
+            Sisa Pagi
+          </button>
+          <button
+            @click="activeTab = 'digiling-spa'"
+            :class="[
+              'relative px-3 sm:px-4 lg:px-5 py-4 text-xs sm:text-sm font-medium transition-all duration-300 shrink-0 whitespace-nowrap',
+              activeTab === 'digiling-spa'
+                ? 'text-yellow-600 dark:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-yellow-400 after:to-yellow-600'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
+            ]"
+            type="button"
+          >
+            Digiling per SPA
+          </button>
         </div>
       </div>
     </div>
 
     <PemasukanPerKebun v-if="activeTab === 'kebun'" />
-    <PemasukanPerKategori v-else />
+    <PemasukanPerKategori v-else-if="activeTab === 'kategori'" />
+    <PemasukanPerWilayah v-else-if="activeTab === 'wilayah'" />
+    <SisaPagi v-else-if="activeTab === 'sisa-pagi'" />
+    <DigilingPerSpa v-else-if="activeTab === 'digiling-spa'" />
   </div>
 </template>
