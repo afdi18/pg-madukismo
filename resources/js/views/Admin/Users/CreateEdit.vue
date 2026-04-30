@@ -274,6 +274,7 @@ const roleBadgeClass: Record<string, string> = {
               <option>IT</option>
               <option>Umum / HRD</option>
               <option>Akuntansi & Keuangan</option>
+              <option>Direksi</option>
             </select>
           </div>
 

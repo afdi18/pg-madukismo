@@ -11,16 +11,22 @@ interface PermissionItem {
   display_name: string
 }
 
-interface MenuAccessItem {
+interface MenuAccessAction {
   key: string
   label: string
   permissionNames: string[]
 }
 
+interface MenuAccessMenu {
+  key: string
+  label: string
+  actions: MenuAccessAction[]
+}
+
 interface MenuAccessGroup {
   key: string
   label: string
-  items: MenuAccessItem[]
+  menus: MenuAccessMenu[]
 }
 
 interface RoleItem {
@@ -50,7 +56,7 @@ const form = ref({
   make_admin: false,
   permission_ids: [] as number[],
 })
-const selectedMenuKeys = ref<string[]>([])
+const selectedActionKeys = ref<string[]>([])
 const nonMenuPermissionIds = ref<number[]>([])
 
 const roleList = computed(() => roles.value)
@@ -64,70 +70,206 @@ const menuAccessGroups: MenuAccessGroup[] = [
   {
     key: 'dashboard',
     label: 'Dashboard',
-    items: [
-      { key: 'dashboard-informasi-tebu', label: 'Informasi Tebu', permissionNames: ['dashboard.view'] },
-      { key: 'dashboard-monitoring-pabrik', label: 'Monitoring Pabrik', permissionNames: ['operasional.view'] },
-      { key: 'dashboard-pengawasan-qa', label: 'Angka Pengawasan QA', permissionNames: ['dashboard.pengawasan_qa.view'] },
+    menus: [
+      {
+        key: 'dashboard-informasi-tebu',
+        label: 'Informasi Tebu',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['dashboard.view'] },
+          { key: 'export', label: 'Export', permissionNames: ['dashboard.export'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['dashboard.print'] },
+        ],
+      },
+      {
+        key: 'dashboard-monitoring-pabrik',
+        label: 'Monitoring Pabrik',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['operasional.view'] },
+          { key: 'create', label: 'Tambah', permissionNames: ['operasional.create'] },
+          { key: 'update', label: 'Edit', permissionNames: ['operasional.update'] },
+          { key: 'delete', label: 'Hapus', permissionNames: ['operasional.delete'] },
+          { key: 'export', label: 'Export', permissionNames: ['operasional.export'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['operasional.print'] },
+        ],
+      },
+      {
+        key: 'dashboard-pengawasan-qa',
+        label: 'Angka Pengawasan QA',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['dashboard.pengawasan_qa.view'] },
+        ],
+      },
     ],
   },
   {
     key: 'penerimaan',
     label: 'Penerimaan Tebu',
-    items: [
+    menus: [
       {
         key: 'penerimaan-manajemen-spa',
-        label: 'Manajemen SPA',
-        permissionNames: ['penerimaan.spa.view', 'penerimaan.update'],
+        label: 'Monitoring SPA',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['penerimaan.spa.view'] },
+          { key: 'create', label: 'Tambah', permissionNames: ['penerimaan.create'] },
+          { key: 'update', label: 'Edit', permissionNames: ['penerimaan.update'] },
+          { key: 'delete', label: 'Hapus', permissionNames: ['penerimaan.delete'] },
+          { key: 'export', label: 'Export', permissionNames: ['penerimaan.export'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['penerimaan.spa.print'] },
+        ],
       },
       {
         key: 'penerimaan-monitoring-antrian',
         label: 'Monitoring Antrian',
-        permissionNames: ['penerimaan.antrian.view'],
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['penerimaan.antrian.view'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['penerimaan.antrian.print'] },
+        ],
       },
       {
-        key: 'penerimaan-data-pemasukan',
-        label: 'Data Pemasukan',
-        permissionNames: ['penerimaan.pemasukan.view'],
+        key: 'penerimaan-data-pemasukan-all',
+        label: 'Data Pemasukan (Semua Tab)',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['penerimaan.pemasukan.view'] },
+          { key: 'export', label: 'Export', permissionNames: ['penerimaan.pemasukan.export'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['penerimaan.pemasukan.print'] },
+        ],
+      },
+      {
+        key: 'penerimaan-data-pemasukan-kebun',
+        label: 'Tab Pemasukan per Kebun',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['penerimaan.pemasukan.kebun.view'] },
+          { key: 'export', label: 'Export', permissionNames: ['penerimaan.pemasukan.kebun.export'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['penerimaan.pemasukan.kebun.print'] },
+        ],
+      },
+      {
+        key: 'penerimaan-data-pemasukan-kategori',
+        label: 'Tab Pemasukan per Kategori',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['penerimaan.pemasukan.kategori.view'] },
+          { key: 'export', label: 'Export', permissionNames: ['penerimaan.pemasukan.kategori.export'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['penerimaan.pemasukan.kategori.print'] },
+        ],
+      },
+      {
+        key: 'penerimaan-data-pemasukan-wilayah',
+        label: 'Tab Pemasukan per Wilayah',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['penerimaan.pemasukan.wilayah.view'] },
+          { key: 'export', label: 'Export', permissionNames: ['penerimaan.pemasukan.wilayah.export'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['penerimaan.pemasukan.wilayah.print'] },
+        ],
+      },
+      {
+        key: 'penerimaan-data-pemasukan-sisa-pagi',
+        label: 'Tab Sisa Pagi',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['penerimaan.pemasukan.sisa_pagi.view'] },
+          { key: 'export', label: 'Export', permissionNames: ['penerimaan.pemasukan.sisa_pagi.export'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['penerimaan.pemasukan.sisa_pagi.print'] },
+        ],
+      },
+      {
+        key: 'penerimaan-data-pemasukan-digiling-spa',
+        label: 'Tab Digiling per SPA',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['penerimaan.pemasukan.digiling_spa.view'] },
+          { key: 'export', label: 'Export', permissionNames: ['penerimaan.pemasukan.digiling_spa.export'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['penerimaan.pemasukan.digiling_spa.print'] },
+        ],
       },
     ],
   },
   {
     key: 'analisa-qa',
     label: 'Analisa QA',
-    items: [
+    menus: [
       {
-        key: 'analisa-qa-akses-entri',
-        label: 'Akses Entri Data Pabrik Gula / Alkohol',
-        permissionNames: ['lab_qa.view', 'lab_qa.create'],
+        key: 'analisa-qa-data',
+        label: 'Data QA Pabrik Gula / Alkohol',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['lab_qa.view'] },
+          { key: 'create', label: 'Tambah', permissionNames: ['lab_qa.create'] },
+          { key: 'update', label: 'Edit', permissionNames: ['lab_qa.update'] },
+          { key: 'delete', label: 'Hapus', permissionNames: ['lab_qa.delete'] },
+          { key: 'approve', label: 'Approve', permissionNames: ['lab_qa.approve'] },
+          { key: 'export', label: 'Export', permissionNames: ['lab_qa.export'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['lab_qa.print'] },
+        ],
       },
       {
-        key: 'analisa-qa-edit-entri',
-        label: 'Edit Entri Data Pabrik Gula / Alkohol',
-        permissionNames: ['lab_qa.update'],
-      },
-      {
-        key: 'analisa-qa-hapus-entri',
-        label: 'Hapus Entri Data Pabrik Gula / Alkohol',
-        permissionNames: ['lab_qa.delete'],
+        key: 'analisa-qa-pos-npp',
+        label: 'Pos NPP',
+        actions: [
+          { key: 'view', label: 'Akses', permissionNames: ['lab_qa.pos_npp'] },
+        ],
       },
     ],
   },
   {
     key: 'peta-kebun',
     label: 'Peta Kebun',
-    items: [
-      { key: 'peta-kebun-index', label: 'Peta Kebun', permissionNames: ['peta_kebun.view'] },
+    menus: [
+      {
+        key: 'peta-kebun-index',
+        label: 'Peta Kebun',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['peta_kebun.view'] },
+          { key: 'create', label: 'Tambah', permissionNames: ['peta_kebun.create'] },
+          { key: 'update', label: 'Edit', permissionNames: ['peta_kebun.update'] },
+          { key: 'delete', label: 'Hapus', permissionNames: ['peta_kebun.delete'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['peta_kebun.print'] },
+        ],
+      },
     ],
   },
   {
     key: 'admin',
     label: 'Administrasi',
-    items: [
-      { key: 'manajemen-user', label: 'Manajemen User', permissionNames: ['user.view'] },
-      { key: 'manajemen-acl', label: 'Manajemen ACL', permissionNames: ['role.view'] },
+    menus: [
+      {
+        key: 'manajemen-user',
+        label: 'Manajemen User',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['user.view'] },
+          { key: 'create', label: 'Tambah', permissionNames: ['user.create'] },
+          { key: 'update', label: 'Edit', permissionNames: ['user.update'] },
+          { key: 'delete', label: 'Hapus', permissionNames: ['user.delete'] },
+          { key: 'assign-role', label: 'Assign Role', permissionNames: ['user.assign_role'] },
+          { key: 'assign-attribute', label: 'Assign Atribut', permissionNames: ['user.assign_attribute'] },
+        ],
+      },
+      {
+        key: 'manajemen-acl',
+        label: 'Manajemen ACL',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['role.view'] },
+          { key: 'create', label: 'Tambah', permissionNames: ['role.create'] },
+          { key: 'update', label: 'Edit', permissionNames: ['role.update'] },
+          { key: 'delete', label: 'Hapus', permissionNames: ['role.delete'] },
+          { key: 'assign-permission', label: 'Assign Permission', permissionNames: ['role.assign_permission'] },
+        ],
+      },
     ],
   },
 ]
+
+interface AccessActionEntry {
+  key: string
+  action: MenuAccessAction
+}
+
+const allAccessActionEntries = computed<AccessActionEntry[]>(() =>
+  menuAccessGroups.flatMap((group) =>
+    group.menus.flatMap((menu) =>
+      menu.actions.map((action) => ({
+        key: `${group.key}::${menu.key}::${action.key}`,
+        action,
+      }))
+    )
+  )
+)
 const canSave = computed(() => {
   if (isSystemRoleSelected.value) return false
   return isEditing.value ? authStore.can('role.update') : authStore.can('role.create')
@@ -150,7 +292,7 @@ async function loadData() {
 function resetForm() {
   selectedRoleId.value = null
   errors.value = {}
-  selectedMenuKeys.value = []
+  selectedActionKeys.value = []
   nonMenuPermissionIds.value = []
   form.value = {
     name: '',
@@ -165,13 +307,12 @@ function resetForm() {
 function loadRoleToForm(role: RoleItem) {
   const rolePermissionIds = role.permissions.map(p => p.id)
   const allMenuPermissionIds = new Set(
-    menuAccessGroups
-      .flatMap(group => group.items)
-      .flatMap(item => permissionIdsByNames(item.permissionNames))
+    allAccessActionEntries.value
+      .flatMap((entry) => permissionIdsByNames(entry.action.permissionNames))
   )
 
   nonMenuPermissionIds.value = rolePermissionIds.filter(id => !allMenuPermissionIds.has(id))
-  selectedMenuKeys.value = inferSelectedMenuKeys(rolePermissionIds)
+  selectedActionKeys.value = inferSelectedActionKeys(rolePermissionIds)
 
   selectedRoleId.value = role.id
   errors.value = {}
@@ -187,31 +328,9 @@ function loadRoleToForm(role: RoleItem) {
   syncPermissionIdsFromMenuSelection()
 }
 
-function togglePermission(permissionId: number) {
-  const idx = form.value.permission_ids.indexOf(permissionId)
-  if (idx === -1) form.value.permission_ids.push(permissionId)
-  else form.value.permission_ids.splice(idx, 1)
-}
-
-function groupChecked(groupPermissions: PermissionItem[]): boolean {
-  if (groupPermissions.length === 0) return false
-  return groupPermissions.every(p => form.value.permission_ids.includes(p.id))
-}
-
-function toggleGroup(groupPermissions: PermissionItem[]) {
-  const allChecked = groupChecked(groupPermissions)
-  if (allChecked) {
-    form.value.permission_ids = form.value.permission_ids.filter(id => !groupPermissions.some(p => p.id === id))
-    return
-  }
-
-  const merged = new Set([...form.value.permission_ids, ...groupPermissions.map(p => p.id)])
-  form.value.permission_ids = Array.from(merged)
-}
-
 function applyAdminPermissions() {
   if (form.value.make_admin) {
-    selectedMenuKeys.value = menuAccessGroups.flatMap(group => group.items.map(item => item.key))
+    selectedActionKeys.value = allAccessActionEntries.value.map((entry) => entry.key)
     nonMenuPermissionIds.value = []
     form.value.permission_ids = Object.values(permissionGroups.value).flat().map(p => p.id)
   }
@@ -226,64 +345,97 @@ function permissionIdsByNames(permissionNames: string[]): number[] {
 function syncPermissionIdsFromMenuSelection() {
   const selectedIds = Array.from(
     new Set(
-      menuAccessGroups
-        .flatMap(group => group.items)
-        .filter(item => selectedMenuKeys.value.includes(item.key))
-        .flatMap(item => permissionIdsByNames(item.permissionNames))
+      allAccessActionEntries.value
+        .filter((entry) => selectedActionKeys.value.includes(entry.key))
+        .flatMap((entry) => permissionIdsByNames(entry.action.permissionNames))
     )
   )
 
   form.value.permission_ids = Array.from(new Set([...nonMenuPermissionIds.value, ...selectedIds]))
 }
 
-function inferSelectedMenuKeys(permissionIds: number[]): string[] {
+function inferSelectedActionKeys(permissionIds: number[]): string[] {
   const selected = new Set<string>()
-  const usedSignature = new Set<string>()
 
-  for (const group of menuAccessGroups) {
-    for (const item of group.items) {
-      const ids = permissionIdsByNames(item.permissionNames)
-      if (ids.length === 0) continue
-      if (!ids.every(id => permissionIds.includes(id))) continue
-
-      const signature = [...ids].sort((a, b) => a - b).join('-')
-      if (usedSignature.has(signature)) continue
-
-      usedSignature.add(signature)
-      selected.add(item.key)
-    }
+  for (const entry of allAccessActionEntries.value) {
+    const ids = permissionIdsByNames(entry.action.permissionNames)
+    if (ids.length === 0) continue
+    if (!ids.every((id) => permissionIds.includes(id))) continue
+    selected.add(entry.key)
   }
 
   return Array.from(selected)
 }
 
-function isMenuItemChecked(item: MenuAccessItem): boolean {
-  return selectedMenuKeys.value.includes(item.key)
+function getActionCompositeKey(group: MenuAccessGroup, menu: MenuAccessMenu, action: MenuAccessAction): string {
+  return `${group.key}::${menu.key}::${action.key}`
 }
 
-function toggleMenuItem(item: MenuAccessItem) {
-  if (isMenuItemChecked(item)) {
-    selectedMenuKeys.value = selectedMenuKeys.value.filter(key => key !== item.key)
+function isActionChecked(group: MenuAccessGroup, menu: MenuAccessMenu, action: MenuAccessAction): boolean {
+  return selectedActionKeys.value.includes(getActionCompositeKey(group, menu, action))
+}
+
+function toggleAction(group: MenuAccessGroup, menu: MenuAccessMenu, action: MenuAccessAction) {
+  const actionKey = getActionCompositeKey(group, menu, action)
+
+  if (selectedActionKeys.value.includes(actionKey)) {
+    selectedActionKeys.value = selectedActionKeys.value.filter((key) => key !== actionKey)
   } else {
-    selectedMenuKeys.value = [...selectedMenuKeys.value, item.key]
+    selectedActionKeys.value = [...selectedActionKeys.value, actionKey]
+  }
+
+  syncPermissionIdsFromMenuSelection()
+}
+
+function isMenuChecked(group: MenuAccessGroup, menu: MenuAccessMenu): boolean {
+  if (menu.actions.length === 0) return false
+  return menu.actions.every((action) => isActionChecked(group, menu, action))
+}
+
+function isMenuIndeterminate(group: MenuAccessGroup, menu: MenuAccessMenu): boolean {
+  if (menu.actions.length === 0) return false
+  const checkedCount = menu.actions.filter((action) => isActionChecked(group, menu, action)).length
+  return checkedCount > 0 && checkedCount < menu.actions.length
+}
+
+function toggleMenu(group: MenuAccessGroup, menu: MenuAccessMenu) {
+  if (isMenuChecked(group, menu)) {
+    const menuActionKeys = menu.actions.map((action) => getActionCompositeKey(group, menu, action))
+    selectedActionKeys.value = selectedActionKeys.value.filter((key) => !menuActionKeys.includes(key))
+  } else {
+    const merged = new Set([
+      ...selectedActionKeys.value,
+      ...menu.actions.map((action) => getActionCompositeKey(group, menu, action)),
+    ])
+    selectedActionKeys.value = Array.from(merged)
   }
 
   syncPermissionIdsFromMenuSelection()
 }
 
 function isMenuGroupChecked(group: MenuAccessGroup): boolean {
-  if (group.items.length === 0) return false
-  return group.items.every(item => isMenuItemChecked(item))
+  if (group.menus.length === 0) return false
+  return group.menus.every((menu) => isMenuChecked(group, menu))
+}
+
+function isMenuGroupIndeterminate(group: MenuAccessGroup): boolean {
+  if (group.menus.length === 0) return false
+  const checkedCount = group.menus.filter((menu) => isMenuChecked(group, menu)).length
+  return checkedCount > 0 && checkedCount < group.menus.length
 }
 
 function toggleMenuGroup(group: MenuAccessGroup) {
   if (isMenuGroupChecked(group)) {
-    selectedMenuKeys.value = selectedMenuKeys.value.filter(
-      key => !group.items.some(item => item.key === key)
+    const groupActionKeys = group.menus.flatMap((menu) =>
+      menu.actions.map((action) => getActionCompositeKey(group, menu, action))
     )
+    selectedActionKeys.value = selectedActionKeys.value.filter((key) => !groupActionKeys.includes(key))
   } else {
-    const merged = new Set([...selectedMenuKeys.value, ...group.items.map(item => item.key)])
-    selectedMenuKeys.value = Array.from(merged)
+    const merged = new Set([
+      ...selectedActionKeys.value,
+      ...group.menus.flatMap((menu) => menu.actions.map((action) => getActionCompositeKey(group, menu, action))),
+    ])
+    selectedActionKeys.value = Array.from(merged)
   }
 
   syncPermissionIdsFromMenuSelection()
@@ -499,32 +651,53 @@ onMounted(loadData)
             :key="group.key"
             class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-3"
           >
-            <label class="inline-flex items-center gap-2 mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+            <label class="inline-flex items-center gap-2 mb-3 text-sm font-semibold text-gray-700 dark:text-gray-200">
               <input
                 type="checkbox"
                 :checked="isMenuGroupChecked(group)"
-                  :disabled="isSystemRoleSelected"
+                :indeterminate.prop="isMenuGroupIndeterminate(group)"
+                :disabled="isSystemRoleSelected"
                 @change="toggleMenuGroup(group)"
                 class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-yellow-500 focus:ring-yellow-500"
               />
               {{ group.label }}
             </label>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-              <label
-                v-for="item in group.items"
-                :key="item.key"
-                class="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"
+            <div class="space-y-3">
+              <div
+                v-for="menu in group.menus"
+                :key="menu.key"
+                class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/50 px-3 py-2.5"
               >
-                <input
-                  type="checkbox"
-                  :checked="isMenuItemChecked(item)"
-                  :disabled="isSystemRoleSelected"
-                  @change="toggleMenuItem(item)"
-                  class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-yellow-500 focus:ring-yellow-500"
-                />
-                {{ item.label }}
-              </label>
+                <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                  <input
+                    type="checkbox"
+                    :checked="isMenuChecked(group, menu)"
+                    :indeterminate.prop="isMenuIndeterminate(group, menu)"
+                    :disabled="isSystemRoleSelected"
+                    @change="toggleMenu(group, menu)"
+                    class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-yellow-500 focus:ring-yellow-500"
+                  />
+                  {{ menu.label }}
+                </label>
+
+                <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-1.5 pl-6">
+                  <label
+                    v-for="action in menu.actions"
+                    :key="`${menu.key}-${action.key}`"
+                    class="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="isActionChecked(group, menu, action)"
+                      :disabled="isSystemRoleSelected"
+                      @change="toggleAction(group, menu, action)"
+                      class="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-yellow-500 focus:ring-yellow-500"
+                    />
+                    {{ action.label }}
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         </div>

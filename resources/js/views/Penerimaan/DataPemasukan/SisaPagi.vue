@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 type SisaPagiRow = {
   HRPem:   number
@@ -28,7 +29,16 @@ const loading   = ref(false)
 const isBackground = ref(false)
 const errorMsg  = ref('')
 const syncGuard = ref(false)
+const authStore = useAuthStore()
 let   timer: ReturnType<typeof setInterval> | null = null
+
+const canPrintData = computed(() =>
+  authStore.canAny([
+    'penerimaan.pemasukan.sisa_pagi.print',
+    'penerimaan.pemasukan.print',
+    'penerimaan.print',
+  ])
+)
 
 // ── helpers ────────────────────────────────────────────────
 function fmt(n: number | null | undefined): string {
@@ -136,6 +146,11 @@ async function fetchData(background = false) {
   }
 }
 
+function printData() {
+  if (!canPrintData.value) return
+  window.print()
+}
+
 // ── lifecycle ──────────────────────────────────────────────
 onMounted(async () => {
   await fetchDefault()
@@ -152,7 +167,7 @@ onBeforeUnmount(() => {
   <div class="space-y-4">
 
     <!-- Filter Card -->
-    <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4">
+    <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 print-hidden">
       <div class="flex flex-wrap items-end gap-4">
         <!-- Hari Giling -->
         <label class="flex flex-col gap-1 text-sm text-gray-700 dark:text-gray-200">
@@ -188,6 +203,15 @@ onBeforeUnmount(() => {
           type="button"
         >
           {{ loading ? 'Memuat…' : 'Tampilkan' }}
+        </button>
+
+        <button
+          v-if="canPrintData"
+          @click="printData"
+          class="h-10 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors"
+          type="button"
+        >
+          Cetak
         </button>
 
         <!-- Indicator background refresh -->
@@ -338,13 +362,13 @@ onBeforeUnmount(() => {
               colspan="2"
               class="border border-gray-300 dark:border-gray-700 px-4 py-2 text-red-700 dark:text-red-300 font-semibold"
             >
-              Sisa Rit
+              Sisa Rit Lori
             </td>
             <td
               colspan="2"
               class="border border-gray-300 dark:border-gray-700 px-4 py-2 text-red-700 dark:text-red-300 font-semibold"
             >
-              Sisa Berat
+              Sisa Berat Lori
             </td>
           </tr>
 
@@ -361,6 +385,67 @@ onBeforeUnmount(() => {
               class="border border-gray-300 dark:border-gray-700 px-4 py-4 font-extrabold text-red-600 dark:text-red-400 text-xl"
             >
               {{ data ? fmt(data.SisaBrt) : '0' }}
+            </td>
+          </tr>
+        <!-- ── Label Sisa Rit | Sisa Berat ── -->
+          <tr class="bg-red-50 dark:bg-red-900/20">
+            <td
+              colspan="2"
+              class="border border-gray-300 dark:border-gray-700 px-4 py-2 text-red-700 dark:text-red-300 font-semibold"
+            >
+              Truk Belum Timbang 1
+            </td>
+            <td
+              colspan="2"
+              class="border border-gray-300 dark:border-gray-700 px-4 py-2 text-red-700 dark:text-red-300 font-semibold"
+            >
+              Truk Sudah Timbang 1
+            </td>
+          </tr>
+          <tr class="bg-red-50 dark:bg-red-900/20">
+            <td
+              class="border border-gray-300 dark:border-gray-700 px-4 py-2 text-red-700 dark:text-red-300 font-semibold"
+            >
+              Sisa Rit 
+            </td>
+            <td
+              class="border border-gray-300 dark:border-gray-700 px-4 py-2 text-red-700 dark:text-red-300 font-semibold"
+            >
+              Sisa Berat
+            </td>
+            <td
+              class="border border-gray-300 dark:border-gray-700 px-4 py-2 text-red-700 dark:text-red-300 font-semibold"
+            >
+              Sisa Rit 
+            </td>
+            <td
+              class="border border-gray-300 dark:border-gray-700 px-4 py-2 text-red-700 dark:text-red-300 font-semibold"
+            >
+              Sisa Berat
+            </td>
+          </tr>
+
+          <!-- ── Value Sisa Rit | Sisa Berat ── -->
+          <tr>
+            <td
+              class="border border-gray-300 dark:border-gray-700 px-4 py-4 font-extrabold text-red-600 dark:text-red-400 text-xl"
+            >
+              {{ data ? fmt(0) : '0' }}
+            </td>
+            <td
+              class="border border-gray-300 dark:border-gray-700 px-4 py-4 font-extrabold text-red-600 dark:text-red-400 text-xl"
+            >
+              {{ data ? fmt(0) : '0' }}
+            </td>
+            <td
+              class="border border-gray-300 dark:border-gray-700 px-4 py-4 font-extrabold text-red-600 dark:text-red-400 text-xl"
+            >
+              {{ data ? fmt(0) : '0' }}
+            </td>
+            <td
+              class="border border-gray-300 dark:border-gray-700 px-4 py-4 font-extrabold text-red-600 dark:text-red-400 text-xl"
+            >
+              {{ data ? fmt(0) : '0' }}
             </td>
           </tr>
 

@@ -1,15 +1,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { ActivityIcon, FlameIcon, GaugeIcon, RefreshCwIcon, ZapIcon } from 'lucide-vue-next'
+import { ActivityIcon, FlameIcon, RefreshCwIcon, ZapIcon } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
-
-type ScreenType = 'boiler' | 'mill' | 'power-house'
 
 type WsStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 
 type RealtimePayload = Record<string, unknown>
 
-const activeScreen = ref<ScreenType>('boiler')
 const updatedAt = ref(new Date().toLocaleString('id-ID'))
 const wsStatus = ref<WsStatus>('disconnected')
 const wsError = ref('')
@@ -72,11 +69,6 @@ const generators = ref([
   { name: 'Generator 3', daya: '-', ampere: '-', tegangan: '-', frekuensi: '-', cosPhi: '-' },
 ])
 
-const screenTitle = computed(() => {
-  if (activeScreen.value === 'boiler') return 'Monitoring Pabrik — Boiler Screen'
-  if (activeScreen.value === 'mill') return 'Monitoring Pabrik — Mill Screen'
-  return 'Monitoring Pabrik — Power House'
-})
 
 function refreshData() {
   connectWebSocket(true)
@@ -320,12 +312,6 @@ const millRpmActiveCount = computed(() => {
 
 const isMillGilingLive = computed(() => millRpmActiveCount.value >= 4)
 
-function screenButtonClass(screen: ScreenType): string {
-  return activeScreen.value === screen
-    ? 'bg-yellow-500 text-white border-yellow-500'
-    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
-}
-
 function accentClass(accent: string): string {
   return {
     blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
@@ -348,312 +334,350 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div>
-        <h1 class="text-xl font-bold text-gray-800 dark:text-white">{{ screenTitle }}</h1>
-        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-          Parameter operasional real-time boiler, mill, dan power house.
-        </p>
+  <div class="flex min-h-screen flex-col gap-2 bg-gray-50 p-2 text-gray-900 dark:bg-gray-950 dark:text-white">
+
+    <!-- ── Header bar ────────────────────────────────────────────── -->
+    <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-900">
+      <div class="flex items-center gap-3">
+        <h1 class="text-sm font-bold tracking-wide text-gray-900 dark:text-white">MONITORING PABRIK REALTIME</h1>
+        <span class="text-gray-300 dark:text-gray-600">|</span>
+        <span class="text-xs text-gray-500">Mill · Boiler · Power House</span>
       </div>
-      <div class="flex items-center gap-2">
-        <button
-          @click="refreshData"
-          class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-        >
-          <RefreshCwIcon class="h-3.5 w-3.5" />
-          Refresh
-        </button>
+      <div class="flex items-center gap-3">
+        <div v-if="wsError" class="rounded border border-red-300 bg-red-50 px-2 py-0.5 text-xs text-red-600 dark:border-red-700 dark:bg-red-900/40 dark:text-red-300">
+          {{ wsError }}
+        </div>
         <span class="inline-flex items-center gap-1 text-xs font-semibold" :class="wsStatusClass">
-          <ActivityIcon class="h-3.5 w-3.5" />
+          <ActivityIcon class="h-3 w-3" />
           {{ wsStatusLabel }}
         </span>
-        <span class="text-xs text-gray-400 dark:text-gray-500">Update: {{ updatedAt }}</span>
-      </div>
-    </div>
-
-    <div v-if="wsError" class="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
-      {{ wsError }}
-    </div>
-
-    <div class="flex flex-wrap gap-2">
-      <button @click="activeScreen = 'boiler'" :class="['rounded-lg border px-3 py-2 text-sm font-semibold transition-colors', screenButtonClass('boiler')]">
-        Boiler Screen
-      </button>
-      <button @click="activeScreen = 'mill'" :class="['rounded-lg border px-3 py-2 text-sm font-semibold transition-colors', screenButtonClass('mill')]">
-        Mill Screen
-      </button>
-      <button @click="activeScreen = 'power-house'" :class="['rounded-lg border px-3 py-2 text-sm font-semibold transition-colors', screenButtonClass('power-house')]">
-        Power House
-      </button>
-    </div>
-
-    <div v-if="activeScreen === 'boiler'" class="space-y-4">
-      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div class="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <div class="mb-2 inline-flex rounded-lg bg-cyan-50 p-2 text-cyan-600 dark:bg-cyan-900/20 dark:text-cyan-400">
-            <FlameIcon class="h-4 w-4" />
-          </div>
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Tekanan Uap Baru</p>
-          <p class="mt-1 text-xl font-bold text-gray-800 dark:text-white">{{ tekananUapBaru }}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Kg/cm²</p>
-        </div>
-
-        <div class="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <div class="mb-2 inline-flex rounded-lg bg-amber-50 p-2 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
-            <FlameIcon class="h-4 w-4" />
-          </div>
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Tekanan Uap Bekas</p>
-          <p class="mt-1 text-xl font-bold text-gray-800 dark:text-white">{{ tekananUapBekas }}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Kg/cm²</p>
-        </div>
-      </div>
-
-      <div class="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-        <div class="mb-3 flex items-center gap-2">
-          <span class="inline-flex rounded-lg bg-orange-50 p-2 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400">
-            <FlameIcon class="h-4 w-4" />
-          </span>
-          <p class="text-sm font-bold text-gray-700 dark:text-gray-200">Ketel Cheng-Chen</p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-7">
-          <div
-            v-for="item in boilerOverview"
-            :key="item.label"
-            class="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
-          >
-            <div class="mb-2 inline-flex rounded-lg p-2" :class="accentClass(item.accent)">
-              <FlameIcon class="h-4 w-4" />
-            </div>
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{{ item.label }}</p>
-            <p class="mt-1 text-xl font-bold text-gray-800 dark:text-white">{{ item.value }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">{{ item.unit }}</p>
-          </div>
-        </div>
-
-        <div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <div
-            v-for="temp in boilerAirTemp"
-            :key="temp.label"
-            class="rounded-xl border border-gray-100 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900"
-          >
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{{ temp.label }}</p>
-            <p class="mt-1 text-lg font-bold text-gray-800 dark:text-white">{{ temp.value }} {{ temp.unit }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 gap-3 xl:grid-cols-6">
-        <div
-          v-for="unit in boilerUnits"
-          :key="unit.boiler"
-          class="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+        <span class="text-xs text-gray-500">{{ updatedAt }}</span>
+        <button
+          @click="refreshData"
+          class="inline-flex items-center gap-1 rounded border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
         >
-          <p class="mb-3 text-sm font-bold text-gray-700 dark:text-gray-200">{{ unit.boiler }}</p>
-          <div class="space-y-2 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Steam Pressure</span>
-              <span class="font-semibold text-gray-800 dark:text-gray-100">{{ unit.steamPressure }} Kg/cm²</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Temp Furnace</span>
-              <span class="font-semibold text-rose-600 dark:text-rose-400">{{ unit.furnaceTemp }} °C</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Water Flow</span>
-              <span class="font-semibold text-cyan-600 dark:text-cyan-400">{{ unit.waterFlow }} M³/H</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Steam Flow</span>
-              <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ unit.steamFlow }} TON</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <p class="mb-3 text-sm font-bold text-gray-700 dark:text-gray-200">Totalizer</p>
-          <div class="space-y-2 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Steam Flow</span>
-              <span class="font-semibold text-cyan-600 dark:text-cyan-400">-</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Water Flow</span>
-              <span class="font-semibold text-cyan-600 dark:text-cyan-400">-</span>
-            </div>
-          </div>
-        </div>
+          <RefreshCwIcon class="h-3 w-3" />
+          Refresh
+        </button>
       </div>
     </div>
 
-    <div v-else-if="activeScreen === 'mill'" class="space-y-4">
-      <div
-        :class="[
-          'rounded-2xl border px-4 py-3 transition-all duration-300',
-          isMillGilingLive
-            ? 'border-emerald-300 bg-gradient-to-r from-emerald-50 via-lime-50 to-emerald-50 dark:border-emerald-700 dark:from-emerald-900/30 dark:via-lime-900/20 dark:to-emerald-900/30'
-            : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/70',
-        ]"
-      >
-        <div class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-2">
+    <!-- ── 3-column dashboard grid ───────────────────────────────── -->
+    <div class="grid flex-1 grid-cols-1 gap-2 lg:grid-cols-3">
+
+      <!-- ════════════════════════════════════════════════
+           KOLOM 1 – MILL
+      ════════════════════════════════════════════════ -->
+      <div class="flex flex-col gap-2">
+
+        <!-- Mill section header -->
+        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex items-center justify-between border-b border-gray-100 px-3 py-1.5 dark:border-gray-800">
+            <div class="flex items-center gap-2">
+              <span
+                :class="[
+                  'relative inline-flex h-2.5 w-2.5 rounded-full',
+                  isMillGilingLive ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-600',
+                ]"
+              >
+                <span v-if="isMillGilingLive" class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70"></span>
+              </span>
+              <span class="text-[10px] font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300">Mill</span>
+              <span
+                :class="[
+                  'text-[9px] font-semibold uppercase',
+                  isMillGilingLive ? 'animate-pulse text-emerald-500 dark:text-emerald-400' : 'text-red-500',
+                ]"
+              >{{ isMillGilingLive ? 'LIVE' : 'STOP' }}</span>
+            </div>
             <span
               :class="[
-                'relative inline-flex h-3 w-3 rounded-full',
-                isMillGilingLive ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-500',
-              ]"
-            >
-              <span
-                v-if="isMillGilingLive"
-                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70"
-              ></span>
-            </span>
-            <p
-              :class="[
-                'text-sm font-bold',
+                'rounded px-1.5 py-0.5 text-[9px] font-bold',
                 isMillGilingLive
-                  ? 'animate-pulse text-emerald-700 dark:text-emerald-300'
-                  : 'text-red-600 dark:text-red-400',
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400'
+                  : 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400',
               ]"
-            >
-              {{ isMillGilingLive ? 'GILING LIVE' : 'GILING BERHENTI' }}
-            </p>
+            >{{ millRpmActiveCount }}/5</span>
           </div>
-          <span
-            :class="[
-              'rounded-full px-2.5 py-1 text-xs font-semibold',
-              isMillGilingLive
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
-            ]"
-          >
-            RPM aktif: {{ millRpmActiveCount }}/5
-          </span>
         </div>
-      </div>
 
-      <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <!-- Gilingan cards -->
         <div
           v-for="station in millStations"
           :key="station.station"
-          class="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+          class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
         >
-          <p class="mb-3 text-sm font-bold text-gray-700 dark:text-gray-200">{{ station.station }}</p>
-          <div v-if="station.station === 'Gilingan 1'" class="space-y-2 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="text-gray-500 dark:text-gray-400">RPM Motor</span>
-              <span class="font-semibold text-amber-600 dark:text-amber-400">{{ station.rpmMotor }} RPM</span>
+          <div class="border-b border-gray-100 px-3 py-1.5 dark:border-gray-800">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{{ station.station }}</span>
+          </div>
+
+          <!-- Gilingan 1: RPM Motor + Ampere -->
+          <div v-if="station.station === 'Gilingan 1'" class="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-800">
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-amber-500 dark:text-amber-400">RPM Motor</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-amber-600 dark:text-amber-300">{{ station.rpmMotor }}</p>
+                <p class="text-[9px] text-amber-500 dark:text-amber-700">RPM</p>
+              </div>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Ampere Motor</span>
-              <span class="font-semibold text-gray-800 dark:text-gray-100">{{ station.ampereMotor }} Amp</span>
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ampere</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-gray-700 dark:text-gray-200">{{ station.ampereMotor }}</p>
+                <p class="text-[9px] text-gray-400 dark:text-gray-600">Amp</p>
+              </div>
             </div>
           </div>
 
-          <div v-else class="space-y-2 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="text-gray-500 dark:text-gray-400">RPM Turbin</span>
-              <span class="font-semibold text-cyan-600 dark:text-cyan-400">{{ station.rpmTurbin }} RPM</span>
+          <!-- Gilingan 2–5: RPM Turbin + Steam Charge -->
+          <div v-else class="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-800">
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-cyan-500 dark:text-cyan-400">RPM Turbin</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-cyan-600 dark:text-cyan-300">{{ station.rpmTurbin }}</p>
+                <p class="text-[9px] text-cyan-500 dark:text-cyan-700">RPM</p>
+              </div>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Steam Charge</span>
-              <span class="font-semibold text-gray-800 dark:text-gray-100">{{ station.steamCharge }} Kg/cm²</span>
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Steam Charge</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-gray-700 dark:text-gray-200">{{ station.steamCharge }}</p>
+                <p class="text-[9px] text-gray-400 dark:text-gray-600">Kg/cm²</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div v-else class="space-y-4">
-      <div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
-        <div class="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 xl:col-span-2">
-          <p class="mb-3 text-sm font-bold text-gray-700 dark:text-gray-200">Parameter PLN</p>
-          <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div
-              v-for="pln in powerPln"
-              :key="pln.section"
-              class="rounded-xl border border-gray-100 p-3 dark:border-gray-800"
-            >
-              <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ pln.section }}</p>
-              <div class="grid grid-cols-2 gap-2 text-xs">
-                <div class="rounded-md bg-gray-50 p-2 dark:bg-gray-800">
-                  <p class="text-gray-400">Arus</p>
-                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ pln.arus }} A</p>
-                </div>
-                <div class="rounded-md bg-gray-50 p-2 dark:bg-gray-800">
-                  <p class="text-gray-400">Tegangan</p>
-                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ pln.tegangan }} V</p>
-                </div>
-                <div class="rounded-md bg-gray-50 p-2 dark:bg-gray-800">
-                  <p class="text-gray-400">Frekuensi</p>
-                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ pln.frekuensi }} Hz</p>
-                </div>
-                <div class="rounded-md bg-gray-50 p-2 dark:bg-gray-800">
-                  <p class="text-gray-400">Cos φ</p>
-                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ pln.cosPhi }}</p>
-                </div>
+      <!-- ════════════════════════════════════════════════
+           KOLOM 2 – BOILER
+      ════════════════════════════════════════════════ -->
+      <div class="flex flex-col gap-2">
+
+        <!-- Boiler section header -->
+        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex items-center gap-2 border-b border-gray-100 px-3 py-1.5 dark:border-gray-800">
+            <FlameIcon class="h-3.5 w-3.5 text-orange-500" />
+            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300">Boiler</span>
+          </div>
+        </div>
+
+        <!-- Uap Baru / Uap Bekas -->
+        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+          <div class="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-800">
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-cyan-500 dark:text-cyan-400">Uap Baru</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-cyan-600 dark:text-cyan-300">{{ tekananUapBaru }}</p>
+                <p class="text-[9px] text-cyan-500 dark:text-cyan-700">Kg/cm²</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-amber-500 dark:text-amber-400">Uap Bekas</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-amber-600 dark:text-amber-300">{{ tekananUapBekas }}</p>
+                <p class="text-[9px] text-amber-500 dark:text-amber-700">Kg/cm²</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="space-y-3">
-          <div
-            v-for="item in powerSteam"
-            :key="item.label"
-            class="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
-          >
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{{ item.label }}</p>
-            <p class="mt-1 text-2xl font-bold text-gray-800 dark:text-white">{{ item.value }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">{{ item.unit }}</p>
+        <!-- Boiler units -->
+        <div
+          v-for="unit in boilerUnits"
+          :key="unit.boiler"
+          class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
+        >
+          <div class="border-b border-gray-100 px-3 py-1.5 dark:border-gray-800">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{{ unit.boiler }}</span>
+          </div>
+          <div class="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-800">
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Steam Press.</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-gray-700 dark:text-gray-200">{{ unit.steamPressure }}</p>
+                <p class="text-[9px] text-gray-400 dark:text-gray-600">Kg/cm²</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-rose-500 dark:text-rose-400">Temp Furnace</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-rose-600 dark:text-rose-300">{{ unit.furnaceTemp }}</p>
+                <p class="text-[9px] text-rose-500 dark:text-rose-700">°C</p>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 divide-x divide-gray-100 border-t border-gray-100 dark:divide-gray-800 dark:border-gray-800">
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-cyan-500 dark:text-cyan-400">Water Flow</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-cyan-600 dark:text-cyan-300">{{ unit.waterFlow }}</p>
+                <p class="text-[9px] text-cyan-500 dark:text-cyan-700">M³/H</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-emerald-500 dark:text-emerald-400">Steam Flow</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-emerald-600 dark:text-emerald-300">{{ unit.steamFlow }}</p>
+                <p class="text-[9px] text-emerald-500 dark:text-emerald-700">TON</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Totalizer -->
+        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+          <div class="border-b border-gray-100 px-3 py-1.5 dark:border-gray-800">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Totalizer</span>
+          </div>
+          <div class="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-800">
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-emerald-500 dark:text-emerald-400">Steam Flow</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-emerald-600 dark:text-emerald-300">{{ totalSteamFlow }}</p>
+                <p class="text-[9px] text-emerald-500 dark:text-emerald-700">TON</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-cyan-500 dark:text-cyan-400">Water Flow</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-cyan-600 dark:text-cyan-300">0,00</p>
+                <p class="text-[9px] text-cyan-500 dark:text-cyan-700">M³/H</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
+      <!-- ════════════════════════════════════════════════
+           KOLOM 3 – POWER HOUSE
+      ════════════════════════════════════════════════ -->
+      <div class="flex flex-col gap-2">
+
+        <!-- Power House section header -->
+        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex items-center gap-2 border-b border-gray-100 px-3 py-1.5 dark:border-gray-800">
+            <ZapIcon class="h-3.5 w-3.5 text-yellow-500" />
+            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300">Power House</span>
+          </div>
+        </div>
+
+        <!-- Steam parameters (Uap Baru PH / Uap Bekas PH) -->
+        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+          <div class="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-800">
+            <div
+              v-for="item in powerSteam"
+              :key="item.label"
+              class="flex items-center justify-between px-3 py-2.5"
+            >
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">{{ item.label }}</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-gray-700 dark:text-gray-200">{{ item.value }}</p>
+                <p class="text-[9px] text-gray-400 dark:text-gray-600">{{ item.unit }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generators -->
         <div
           v-for="gen in generators"
           :key="gen.name"
-          class="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+          class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
         >
-          <div class="mb-3 flex items-center gap-2">
-            <span class="inline-flex rounded-lg bg-yellow-50 p-2 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">
-              <ZapIcon class="h-4 w-4" />
-            </span>
-            <p class="text-sm font-bold text-gray-700 dark:text-gray-200">{{ gen.name }}</p>
+          <div class="flex items-center gap-2 border-b border-gray-100 px-3 py-1.5 dark:border-gray-800">
+            <ZapIcon class="h-3 w-3 text-yellow-500" />
+            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300">{{ gen.name }}</span>
           </div>
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="rounded-md bg-gray-50 p-2 dark:bg-gray-800">
-              <p class="text-gray-400">Daya</p>
-              <p class="font-semibold text-gray-800 dark:text-gray-100">{{ gen.daya }} kW</p>
+          <div class="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-800">
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-yellow-500 dark:text-yellow-400">Daya</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-yellow-600 dark:text-yellow-300">{{ gen.daya }}</p>
+                <p class="text-[9px] text-yellow-500 dark:text-yellow-700">kW</p>
+              </div>
             </div>
-            <div class="rounded-md bg-gray-50 p-2 dark:bg-gray-800">
-              <p class="text-gray-400">Ampere</p>
-              <p class="font-semibold text-gray-800 dark:text-gray-100">{{ gen.ampere }} A</p>
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ampere</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-gray-700 dark:text-gray-200">{{ gen.ampere }}</p>
+                <p class="text-[9px] text-gray-400 dark:text-gray-600">A</p>
+              </div>
             </div>
-            <div class="rounded-md bg-gray-50 p-2 dark:bg-gray-800">
-              <p class="text-gray-400">Tegangan</p>
-              <p class="font-semibold text-gray-800 dark:text-gray-100">{{ gen.tegangan }} V</p>
+          </div>
+          <div class="grid grid-cols-2 divide-x divide-gray-100 border-t border-gray-100 dark:divide-gray-800 dark:border-gray-800 lg:grid-cols-3">
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-blue-500 dark:text-blue-400">Tegangan</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-blue-600 dark:text-blue-300">{{ gen.tegangan }}</p>
+                <p class="text-[9px] text-blue-500 dark:text-blue-700">V</p>
+              </div>
             </div>
-            <div class="rounded-md bg-gray-50 p-2 dark:bg-gray-800">
-              <p class="text-gray-400">Frekuensi</p>
-              <p class="font-semibold text-gray-800 dark:text-gray-100">{{ gen.frekuensi }} Hz</p>
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-purple-500 dark:text-purple-400">Frekuensi</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-purple-600 dark:text-purple-300">{{ gen.frekuensi }}</p>
+                <p class="text-[9px] text-purple-500 dark:text-purple-700">Hz</p>
+              </div>
             </div>
-            <div class="col-span-2 rounded-md bg-gray-50 p-2 dark:bg-gray-800">
-              <p class="text-gray-400">Cos φ</p>
-              <p class="font-semibold text-gray-800 dark:text-gray-100">{{ gen.cosPhi }}</p>
+            <div class="col-span-2 flex items-center justify-between px-3 py-2.5 lg:col-span-1">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Cos φ</p>
+              <p class="seven-segment text-[2rem] font-bold leading-none text-gray-700 dark:text-gray-200">{{ gen.cosPhi }}</p>
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- <div class="rounded-xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-      <div class="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400">
-        <ActivityIcon class="mt-0.5 h-4 w-4 text-yellow-500" />
-        Nilai pada halaman Monitoring Pabrik saat ini mengikuti data referensi yang Anda lampirkan (Boiler, Mill, dan Power House), dan siap dihubungkan ke endpoint SCADA ketika API tersedia.
-      </div>
-    </div> -->
+        <!-- PLN -->
+        <div
+          v-for="pln in powerPln"
+          :key="pln.section"
+          class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
+        >
+          <div class="border-b border-gray-100 px-3 py-1.5 dark:border-gray-800">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{{ pln.section }}</span>
+          </div>
+          <div class="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-800">
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Arus</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-gray-700 dark:text-gray-200">{{ pln.arus }}</p>
+                <p class="text-[9px] text-gray-400 dark:text-gray-600">A</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-blue-500 dark:text-blue-400">Tegangan</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-blue-600 dark:text-blue-300">{{ pln.tegangan }}</p>
+                <p class="text-[9px] text-blue-500 dark:text-blue-700">V</p>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 divide-x divide-gray-100 border-t border-gray-100 dark:divide-gray-800 dark:border-gray-800">
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-purple-500 dark:text-purple-400">Frekuensi</p>
+              <div class="flex items-baseline gap-1">
+                <p class="seven-segment text-[2rem] font-bold leading-none text-purple-600 dark:text-purple-300">{{ pln.frekuensi }}</p>
+                <p class="text-[9px] text-purple-500 dark:text-purple-700">Hz</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between px-3 py-2.5">
+              <p class="text-[9px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Cos φ</p>
+              <p class="seven-segment text-[2rem] font-bold leading-none text-gray-700 dark:text-gray-200">{{ pln.cosPhi }}</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /col Power House -->
+    </div><!-- /3-column grid -->
   </div>
 </template>
+
+<style scoped>
+@import url('https://fonts.cdnfonts.com/css/digital-7-mono');
+
+.seven-segment {
+  font-family: 'Digital-7 Mono', 'DS-Digital', 'Consolas', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+</style>

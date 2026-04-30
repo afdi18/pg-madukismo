@@ -108,7 +108,9 @@ export const useAuthStore = defineStore('auth', () => {
      */
     function can(permission: string): boolean {
         if (access.value?.is_admin) return true
-        return access.value?.permissions.includes(permission) ?? false
+        const permissions = permission.split('|').map(p => p.trim()).filter(Boolean)
+        if (permissions.length === 0) return false
+        return permissions.some((perm) => access.value?.permissions.includes(perm) ?? false)
     }
 
     /**
@@ -135,7 +137,7 @@ export const useAuthStore = defineStore('auth', () => {
             { permission: 'dashboard.pengawasan_qa.view', path: '/dashboard/pengawasan-qa' },
             { permission: 'penerimaan.spa.view', path: '/penerimaan/manajemen-spa' },
             { permission: 'penerimaan.antrian.view', path: '/penerimaan/monitoring-antrian' },
-            { permission: 'penerimaan.pemasukan.view', path: '/penerimaan/data-pemasukan' },
+            { permission: 'penerimaan.pemasukan.view|penerimaan.pemasukan.kebun.view|penerimaan.pemasukan.kategori.view|penerimaan.pemasukan.wilayah.view|penerimaan.pemasukan.sisa_pagi.view|penerimaan.pemasukan.digiling_spa.view', path: '/penerimaan/data-pemasukan' },
             { permission: 'peta_kebun.view', path: '/peta-kebun' },
             { permission: 'lab_qa.view', path: '/lab-qa' },
             { path: '/profile' },

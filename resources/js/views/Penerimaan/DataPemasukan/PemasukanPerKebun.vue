@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 type KebunRow = {
   no:             number | string
@@ -38,7 +39,16 @@ const rows        = ref<KebunRow[]>([])
 const loading     = ref(false)
 const isBackground = ref(false)
 const errorMsg    = ref('')
+const authStore   = useAuthStore()
 let   timer: ReturnType<typeof setInterval> | null = null
+
+const canPrintData = computed(() =>
+  authStore.canAny([
+    'penerimaan.pemasukan.kebun.print',
+    'penerimaan.pemasukan.print',
+    'penerimaan.print',
+  ])
+)
 
 // ── SP row mapping — cover common SQLSRV column name variants ──
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,6 +102,11 @@ function fmt(n: number): string {
   return n.toLocaleString('id-ID')
 }
 
+function printData() {
+  if (!canPrintData.value) return
+  window.print()
+}
+
 // ── lifecycle ──────────────────────────────────────────────
 onMounted(() => {
   fetchData()
@@ -107,9 +122,9 @@ onBeforeUnmount(() => {
   <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
     <div class="p-4 space-y-4">
       <!-- Filter -->
-      <div class="flex flex-wrap items-end gap-3">
+      <div class="flex flex-wrap items-end gap-3 print-hidden">
         <label class="text-sm text-gray-700 dark:text-gray-200">
-          <span class="mb-1 block">Tanggal</span>
+          <span class="mb-1 block">Tanggal Laporan</span>
           <input
             v-model="tanggalIso"
             type="date"
@@ -125,6 +140,15 @@ onBeforeUnmount(() => {
           Lihat
         </button>
 
+        <button
+          v-if="canPrintData"
+          type="button"
+          class="h-10 rounded-lg bg-indigo-600 px-6 text-sm font-medium text-white hover:bg-indigo-700 self-end"
+          @click="printData"
+        >
+          Cetak
+        </button>
+
         <span v-if="isBackground" class="self-end text-xs text-gray-400 animate-pulse">Memperbarui…</span>
       </div>
 
@@ -137,20 +161,15 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- table -->
-      <div v-else class="max-h-[500px] overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
+      <div v-else class="max-h-[500px] overflow-auto rounded-lg border border-gray-200 dark:border-gray-700 custom-scrollbar">
         <table class="w-full min-w-[1400px] text-sm">
           <thead>
             <tr class="bg-gray-200/90 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
               <th rowspan="2" class="sticky top-0 z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-2 text-center border border-gray-300 dark:border-gray-700">No</th>
-              <th rowspan="2" class="sticky top-0 z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Register</th>
-              <!-- <th rowspan="2" class="sticky top-0 z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Kelompok</th> -->
+              <th rowspan="2" class="sticky top-0 z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Folio</th>
               <th rowspan="2" class="sticky top-0 z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Kebun</th>
-              <!-- <th rowspan="2" class="sticky top-0 z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Luas (Ha)</th> -->
-              <!-- <th rowspan="2" class="sticky top-0 z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Taksasi</th> -->
               <th colspan="2" class="sticky top-0 z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Hari Ini</th>
               <th colspan="2" class="sticky top-0 z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-2 text-center border border-gray-300 dark:border-gray-700">S / d Hari Ini</th>
-              <!-- <th rowspan="2" class="sticky top-0 z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-2 text-center border border-gray-300 dark:border-gray-700">Produktifitas (Ku/Ha)</th> -->
-              <!-- <th rowspan="2" class="sticky top-0 z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-2 text-center border border-gray-300 dark:border-gray-700">(%) Terhadap Taks</th> -->
             </tr>
             <tr class="bg-gray-200/90 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
               <th class="sticky top-[37px] z-10 bg-gray-200/90 dark:bg-gray-800 px-2 py-1.5 text-center border border-gray-300 dark:border-gray-700">Rit</th>
@@ -176,29 +195,20 @@ onBeforeUnmount(() => {
             >
               <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-center">{{ row.no }}</td>
               <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40">{{ row.register }}</td>
-              <!-- <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40">{{ row.kelompok }}</td> -->
               <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40">{{ row.kebun }}</td>
-              <!-- <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right">{{ fmt(row.luasHa) }}</td> -->
-              <!-- <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right">{{ fmt(row.taksasi) }}</td> -->
               <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right">{{ fmt(row.hariIniRit) }}</td>
               <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right">{{ fmt(row.hariIniBerat) }}</td>
               <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right">{{ fmt(row.sdHariIniRit) }}</td>
               <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right">{{ fmt(row.sdHariIniBerat) }}</td>
-              <!-- <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right">{{ fmt(row.produktivitas) }}</td>
-              <td class="px-2 py-1.5 border border-cyan-200 dark:border-cyan-900/40 text-right">{{ fmt(row.persentase) }}</td> -->
             </tr>
 
             <!-- total footer -->
             <tr v-if="rows.length > 0" class="bg-gray-200/90 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold">
               <td colspan="3" class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-center">Jumlah</td>
-              <!-- <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ fmt(totalLuasHa) }}</td>
-              <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ fmt(totalTaksasi) }}</td> -->
               <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ fmt(totalHariIniRit) }}</td>
               <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ fmt(totalHariIniBerat) }}</td>
               <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ fmt(totalSdRit) }}</td>
               <td class="px-2 py-2 border border-gray-300 dark:border-gray-700 text-right">{{ fmt(totalSdBerat) }}</td>
-              <!-- <td class="px-2 py-2 border border-gray-300 dark:border-gray-700"></td>
-              <td class="px-2 py-2 border border-gray-300 dark:border-gray-700"></td> -->
             </tr>
           </tbody>
         </table>

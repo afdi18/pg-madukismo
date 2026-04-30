@@ -100,12 +100,22 @@ const router = createRouter({
                     },
                 },
 
+                // Lab QA  Pos NPP
+                {
+                    path: 'lab-qa/pos-npp',
+                    name: 'LabQaPosNpp',
+                    component: () => import('@/views/LabQa/PosNpp.vue'),
+                    meta: {
+                        title: 'Lab QA  Pos NPP',
+                        permission: 'lab_qa.pos_npp',
+                    },
+                },
                 // Penerimaan Tebu (nested)
                 {
                     path: 'penerimaan',
                     name: 'Penerimaan',
                     component: () => import('@/views/Penerimaan/Index.vue'),
-                    meta: { title: 'Penerimaan Tebu', permission: 'penerimaan.spa.view|penerimaan.antrian.view|penerimaan.pemasukan.view' },
+                    meta: { title: 'Penerimaan Tebu', permission: 'penerimaan.spa.view|penerimaan.antrian.view|penerimaan.pemasukan.view|penerimaan.pemasukan.kebun.view|penerimaan.pemasukan.kategori.view|penerimaan.pemasukan.wilayah.view|penerimaan.pemasukan.sisa_pagi.view|penerimaan.pemasukan.digiling_spa.view' },
                     children: [
                         {
                             path: '',
@@ -135,7 +145,7 @@ const router = createRouter({
                             component: () => import('@/views/Penerimaan/DataPemasukan/Index.vue'),
                             meta: {
                                 title: 'Data Pemasukan',
-                                permission: 'penerimaan.pemasukan.view',
+                                permission: 'penerimaan.pemasukan.view|penerimaan.pemasukan.kebun.view|penerimaan.pemasukan.kategori.view|penerimaan.pemasukan.wilayah.view|penerimaan.pemasukan.sisa_pagi.view|penerimaan.pemasukan.digiling_spa.view',
                             },
                         },
                     ],

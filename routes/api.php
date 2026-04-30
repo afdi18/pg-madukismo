@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Api\AclManagementController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PetaKebunController;
+use App\Http\Controllers\Api\PosNppController;
 use App\Http\Controllers\Api\UserManagementController;
 use App\Http\Middleware\AbacMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -67,17 +68,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
               Route::get('/antrian-truk-belum-timbang', [\App\Http\Controllers\Api\PenerimaanController::class, 'antrianTrukBelumTimbang'])
                    ->middleware(AbacMiddleware::class . ':penerimaan.antrian.view');
               Route::get('/pemasukan-kategori', [\App\Http\Controllers\Api\PenerimaanController::class, 'pemasukanKategori'])
-                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.kategori.view,penerimaan.pemasukan.view');
               Route::get('/pemasukan-wilayah', [\App\Http\Controllers\Api\PenerimaanController::class, 'pemasukanWilayah'])
-                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.wilayah.view,penerimaan.pemasukan.view');
               Route::get('/pemasukan-kebun', [\App\Http\Controllers\Api\PenerimaanController::class, 'pemasukanKebun'])
-                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.kebun.view,penerimaan.pemasukan.view');
               Route::get('/default-hari', [\App\Http\Controllers\Api\PenerimaanController::class, 'defaultHari'])
-                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.sisa_pagi.view,penerimaan.pemasukan.digiling_spa.view,penerimaan.pemasukan.view');
               Route::get('/sisa-pagi', [\App\Http\Controllers\Api\PenerimaanController::class, 'sisaPagi'])
-                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.sisa_pagi.view,penerimaan.pemasukan.view');
               Route::get('/digiling-per-spa', [\App\Http\Controllers\Api\PenerimaanController::class, 'digilingPerSpa'])
-                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.view');
+                   ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.digiling_spa.view,penerimaan.pemasukan.view');
      });
 
      // ============================================================
@@ -88,6 +89,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
                ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
           Route::get('/pos', [\App\Http\Controllers\Api\EposController::class, 'posList'])
                ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
+          Route::get('/mstpos', [\App\Http\Controllers\Api\EposController::class, 'mstpos'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
+          Route::post('/mstpos/kunci', [\App\Http\Controllers\Api\EposController::class, 'setMstposKunci'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.spa.view');
           Route::post('/pos', [\App\Http\Controllers\Api\EposController::class, 'storePos'])
                ->middleware(AbacMiddleware::class . ':penerimaan.update,penerimaan.spa.view');
           Route::put('/pos/{idPos}', [\App\Http\Controllers\Api\EposController::class, 'updatePos'])
@@ -122,6 +127,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // LAB QA (PostgreSQL)
     // ============================================================
     Route::prefix('lab-qa')->group(function () {
+        // Pos NPP
+        Route::get('/pos-npp/list', [PosNppController::class, 'list'])
+             ->middleware(AbacMiddleware::class . ':lab_qa.pos_npp');
+        Route::get('/pos-npp/config', [PosNppController::class, 'config'])
+             ->middleware(AbacMiddleware::class . ':lab_qa.pos_npp');
+        Route::post('/pos-npp/submit', [PosNppController::class, 'submit'])
+             ->middleware(AbacMiddleware::class . ':lab_qa.pos_npp');
+
         // Master data untuk form entri
         Route::get('/master/stasiun', [\App\Http\Controllers\Api\LabQaController::class, 'stasiunOptions'])
              ->middleware(AbacMiddleware::class . ':lab_qa.view');
@@ -187,3 +200,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
      });
 
 });
+
+
+
+
+

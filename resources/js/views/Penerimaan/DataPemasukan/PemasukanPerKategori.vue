@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 type KategoriRow = {
   ktgr: string
@@ -17,7 +18,16 @@ const rows = ref<KategoriRow[]>([])
 const initialLoading = ref(false)
 const loadingByFilter = ref(false)
 const errorMessage = ref('')
+const authStore = useAuthStore()
 let refreshTimer: ReturnType<typeof setInterval> | null = null
+
+const canPrintData = computed(() =>
+  authStore.canAny([
+    'penerimaan.pemasukan.kategori.print',
+    'penerimaan.pemasukan.print',
+    'penerimaan.print',
+  ])
+)
 
 const totalRitHi = computed(() => rows.value.reduce((sum, row) => sum + row.rithi, 0))
 const totalKuintalHi = computed(() => rows.value.reduce((sum, row) => sum + row.berathi, 0))
@@ -79,6 +89,11 @@ function onApplyFilter() {
   loadKategori(false)
 }
 
+function printData() {
+  if (!canPrintData.value) return
+  window.print()
+}
+
 onMounted(() => {
   loadKategori(false)
   refreshTimer = setInterval(() => loadKategori(true), 60000)
@@ -95,9 +110,9 @@ onBeforeUnmount(() => {
 <template>
   <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
     <div class="p-4 space-y-4">
-      <div class="flex flex-wrap items-end gap-3">
+      <div class="flex flex-wrap items-end gap-3 print-hidden">
         <label class="text-sm text-gray-700 dark:text-gray-200">
-          <span class="mb-1 block">Tanggal</span>
+          <span class="mb-1 block">Tanggal Laporan</span>
           <input
             v-model="selectedDate"
             type="date"
@@ -112,9 +127,18 @@ onBeforeUnmount(() => {
         >
           {{ loadingByFilter ? 'Memuat...' : 'Lihat' }}
         </button>
+
+        <button
+          v-if="canPrintData"
+          type="button"
+          class="h-10 rounded-lg bg-indigo-600 px-6 text-sm font-medium text-white hover:bg-indigo-700 self-end"
+          @click="printData"
+        >
+          Cetak
+        </button>
       </div>
 
-      <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+      <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 custom-scrollbar">
         <table class="w-full min-w-[1000px] text-sm">
           <thead>
             <tr class="bg-gray-200/90 dark:bg-gray-800 text-gray-800 dark:text-gray-100">

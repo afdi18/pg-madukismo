@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 import * as XLSX from 'xlsx'
+import { useAuthStore } from '@/stores/auth'
 
 type GenericRow = Record<string, unknown>
 
@@ -9,6 +10,7 @@ const hrGil = ref<number>(1)
 const maxHrGil = ref<number>(1)
 const searchQuery = ref('')
 const rows = ref<GenericRow[]>([])
+const authStore = useAuthStore()
 const initialLoading = ref(false)
 const loadingByFilter = ref(false)
 const isBackground = ref(false)
@@ -16,6 +18,16 @@ const errorMessage = ref('')
 let refreshTimer: ReturnType<typeof setInterval> | null = null
 
 const hrGilOptions = computed(() => Array.from({ length: maxHrGil.value }, (_, i) => i + 1))
+const canExportData = computed(() =>
+  authStore.canAny(['penerimaan.pemasukan.digiling_spa.export', 'penerimaan.pemasukan.export'])
+)
+const canPrintData = computed(() =>
+  authStore.canAny([
+    'penerimaan.pemasukan.digiling_spa.print',
+    'penerimaan.pemasukan.print',
+    'penerimaan.print',
+  ])
+)
 const tableColumns = computed(() => {
   if (!rows.value.length) return [] as string[]
   return Object.keys(rows.value[0])
@@ -28,7 +40,7 @@ const filteredRows = computed(() => {
   return rows.value.filter((row) =>
     tableColumns.value.some((column) => {
       const rawValue = row[column]
-      const normalized = formatCell(rawValue).toLowerCase()
+      const normalized = formatCell(column,rawValue).toLowerCase()
       return normalized.includes(keyword)
     })
   )
@@ -38,7 +50,8 @@ function padHari(value: number): string {
   return String(value).padStart(3, '0')
 }
 
-function formatCell(value: unknown): string {
+function formatCell(column: string, value: unknown): string {
+    const key = column.toLowerCase()
   if (value === null || value === undefined) return '-'
 
   if (typeof value === 'number') {
@@ -52,7 +65,7 @@ function formatCell(value: unknown): string {
     return value ? 'Ya' : 'Tidak'
   }
 
-  if (typeof value === 'string') {
+  if (typeof value === 'string' && key !== 'spa') {
     const num = Number(value)
     if (!isNaN(num)) {
       return num.toLocaleString('id-ID', {
@@ -98,6 +111,14 @@ function isNumericValue(value: unknown): boolean {
   return false
 }
 
+function formatFontColor(column: string, value: unknown): boolean {
+    const key = column.toLowerCase()
+    if (key.includes('kw netto') && Number(value)===68) {
+        return true
+    }
+  return false
+}
+
 function getCellClass(column: string, value: unknown): string {
   if (isDateColumn(column)) {
     return 'px-3 py-2 border border-cyan-200 dark:border-cyan-900/40 text-center whitespace-nowrap'
@@ -106,6 +127,10 @@ function getCellClass(column: string, value: unknown): string {
   if (isNumericValue(value)) {
     return 'px-3 py-2 border border-cyan-200 dark:border-cyan-900/40 text-right tabular-nums whitespace-nowrap'
   }
+
+//   if (formatFontColor(column, value)){
+//     return 'text-red-600 dark:text-red-400'
+//   }
 
   return 'px-3 py-2 border border-cyan-200 dark:border-cyan-900/40 text-left whitespace-nowrap'
 }
@@ -177,6 +202,7 @@ function onApplyFilter() {
 }
 
 function exportToExcel() {
+  if (!canExportData.value) return
   if (!filteredRows.value.length) return
 
   const header = tableColumns.value
@@ -208,6 +234,11 @@ function exportToExcel() {
   XLSX.writeFile(wb, filename)
 }
 
+function printData() {
+  if (!canPrintData.value) return
+  window.print()
+}
+
 onMounted(async () => {
   try {
     await fetchDefault()
@@ -231,7 +262,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
     <div class="p-4 space-y-4">
-      <div class="flex flex-wrap items-end gap-3">
+      <div class="flex flex-wrap items-end gap-3 print-hidden">
         <label class="text-sm text-gray-700 dark:text-gray-200">
           <span class="mb-1 block">Hari Giling</span>
           <select
@@ -263,6 +294,7 @@ onBeforeUnmount(() => {
         </label>
 
         <button
+          v-if="canExportData"
           @click="exportToExcel"
           :disabled="!filteredRows.length || loadingByFilter"
           class="h-10 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 px-5 text-sm font-medium text-white transition-colors self-end flex items-center gap-1.5"
@@ -272,6 +304,16 @@ onBeforeUnmount(() => {
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 3v13m0 0l-4-4m4 4l4-4" />
           </svg>
           Export Excel
+        </button>
+
+        <button
+          v-if="canPrintData"
+          @click="printData"
+          :disabled="loadingByFilter"
+          class="h-10 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 px-5 text-sm font-medium text-white transition-colors self-end"
+          type="button"
+        >
+          Cetak
         </button>
 
         <span v-if="isBackground" class="flex items-center gap-1.5 text-xs text-gray-400">
@@ -284,7 +326,7 @@ onBeforeUnmount(() => {
         </span>
       </div>
 
-      <div class="max-h-[70vh] overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
+      <div class="max-h-[70vh] overflow-auto rounded-lg border border-gray-200 dark:border-gray-700 custom-scrollbar">
         <table class="w-full min-w-[900px] text-sm">
           <thead>
             <tr class="bg-gray-200/90 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
@@ -319,6 +361,7 @@ onBeforeUnmount(() => {
               </td>
             </tr>
             <tr
+              
               v-for="(row, index) in filteredRows"
               :key="`row-${index}`"
               :class="[
@@ -331,9 +374,11 @@ onBeforeUnmount(() => {
               <td
                 v-for="column in tableColumns"
                 :key="`cell-${index}-${column}`"
-                :class="getCellClass(column, row[column])"
+                :class="[getCellClass(column, row[column]),
+                         formatFontColor(column, row[column])?'text-red-600 dark:text-red-400' : '',
+                        ]"
               >
-                {{ formatCell(row[column]) }}
+                {{ formatCell(column, row[column]) }}
               </td>
             </tr>
           </tbody>

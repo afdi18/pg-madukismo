@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 type QueueRow = {
   id: number
@@ -25,7 +26,12 @@ const errorMessage = ref('')
 const errorMessageBelum = ref('')
 const sortLamaSudah = ref<'asc' | 'desc'>('desc')
 const sortLamaBelum = ref<'asc' | 'desc'>('desc')
+const authStore = useAuthStore()
 let refreshTimer: ReturnType<typeof setInterval> | null = null
+
+const canPrintData = computed(() =>
+  authStore.canAny(['penerimaan.antrian.print', 'penerimaan.print'])
+)
 
 async function loadAntrianTrukSudahTimbang(isBackgroundRefresh = false) {
   if (!isBackgroundRefresh) {
@@ -107,6 +113,18 @@ function beratPerTrukByKategori(nmktgr: string): number {
   return String(nmktgr ?? '').trim().toUpperCase() === 'TRK B' ? 80 : 60
 }
 
+const totalEstimasiBeratBelum = computed(() => {
+  const semuaRows = [ ...belumTimbangRows.value]
+  const total = semuaRows.reduce((sum, row) => sum + beratPerTrukByKategori(row.nmktgr), 0)
+  return total.toLocaleString('id-ID')
+})
+
+const totalEstimasiBeratSudah = computed(() => {
+  const semuaRows = [...sudahTimbangRows.value]
+  const total = semuaRows.reduce((sum, row) => sum + beratPerTrukByKategori(row.nmktgr), 0)
+  return total.toLocaleString('id-ID')
+})
+
 const totalEstimasiBerat = computed(() => {
   const semuaRows = [...sudahTimbangRows.value, ...belumTimbangRows.value]
   const total = semuaRows.reduce((sum, row) => sum + beratPerTrukByKategori(row.nmktgr), 0)
@@ -133,6 +151,11 @@ function toggleSortLamaBelum() {
   sortLamaBelum.value = sortLamaBelum.value === 'asc' ? 'desc' : 'asc'
 }
 
+function printData() {
+  if (!canPrintData.value) return
+  window.print()
+}
+
 onMounted(() => {
   loadAntrianTrukSudahTimbang(false)
   loadAntrianTrukBelumTimbang(false)
@@ -152,14 +175,25 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="p-4 space-y-5">
-    <section class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+    <div class="flex justify-end print-hidden">
+      <button
+        v-if="canPrintData"
+        type="button"
+        class="h-10 rounded-lg bg-indigo-600 px-6 text-sm font-medium text-white hover:bg-indigo-700"
+        @click="printData"
+      >
+        Cetak
+      </button>
+    </div>
+
+    <section class="grid grid-cols-1 sm:grid-cols-4 gap-3 print-hidden">
       <div class="rounded-xl border border-emerald-200/70 bg-emerald-50/80 px-4 py-3 dark:border-emerald-500/30 dark:bg-emerald-500/10">
         <p class="text-xs font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Antrian Sdh Timb 1</p>
-        <p class="mt-1 text-2xl font-bold text-emerald-800 dark:text-emerald-200">{{ totalSudah }} <span class="text-base font-semibold">Rit</span></p>
+        <p class="mt-1 text-2xl font-bold text-emerald-800 dark:text-emerald-200">{{ totalSudah }} <span class="text-base font-semibold">Rit / </span><span class="text-base font-semibold">{{ totalEstimasiBeratSudah }} Ku</span></p>
       </div>
       <div class="rounded-xl border border-amber-200/70 bg-amber-50/80 px-4 py-3 dark:border-amber-500/30 dark:bg-amber-500/10">
         <p class="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300">Antrian Blm Timb 1</p>
-        <p class="mt-1 text-2xl font-bold text-amber-800 dark:text-amber-200">{{ totalBelum }} <span class="text-base font-semibold">Rit / - </span><span class="text-base font-semibold">Ku</span></p>
+        <p class="mt-1 text-2xl font-bold text-amber-800 dark:text-amber-200">{{ totalBelum }} <span class="text-base font-semibold">Rit / </span><span class="text-base font-semibold">{{ totalEstimasiBeratBelum }} Ku</span></p>
       </div>
       <div class="rounded-xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 dark:border-sky-500/30 dark:bg-sky-500/10">
         <p class="text-xs font-medium uppercase tracking-wide text-sky-700 dark:text-sky-300">Jumlah Antrian Truk</p>

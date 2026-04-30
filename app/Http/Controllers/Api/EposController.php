@@ -44,6 +44,56 @@ class EposController extends Controller
         }
     }
 
+    // List master POS untuk pengunci cetak SPTA (SIMANTEBU)
+    public function mstpos()
+    {
+        try {
+            $rows = DB::connection('sqlsrv')->select(
+                "SELECT IDPOS, NMPOS, KUNCI
+                 FROM [dbo].[TBL_MSTPOS]
+                 ORDER BY CASE WHEN IDPOS = '000' THEN 999 ELSE ISNULL(TRY_CAST(IDPOS AS INT), 998) END, IDPOS"
+            );
+
+            foreach ($rows as $row) {
+                if (isset($row->KUNCI)) {
+                    $row->KUNCI = (int) $row->KUNCI;
+                }
+            }
+
+            return response()->json(['data' => $rows], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // Update status kunci cetak SPTA per POS
+    public function setMstposKunci(Request $request)
+    {
+        $idPos = trim((string) $request->input('idpos', ''));
+        $kunci = $request->input('kunci', null);
+
+        if ($idPos === '') {
+            return response()->json(['error' => 'IDPOS wajib diisi'], 422);
+        }
+        if (!in_array((int) $kunci, [0, 1], true)) {
+            return response()->json(['error' => 'Nilai KUNCI hanya boleh 0 atau 1'], 422);
+        }
+
+        try {
+            $updated = DB::connection('sqlsrv')->update(
+                "UPDATE [dbo].[TBL_MSTPOS] SET [KUNCI] = ? WHERE [IDPOS] = ?",
+                [(int) $kunci, $idPos]
+            );
+
+            if (!$updated) {
+                return response()->json(['ok' => false, 'error' => 'Data POS tidak ditemukan atau tidak berubah'], 404);
+            }
+
+            return response()->json(['ok' => true, 'updated' => (bool) $updated], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
     // Create POS pantau
     public function storePos(Request $request)
     {
@@ -236,3 +286,4 @@ class EposController extends Controller
         return response()->json(['data' => json_decode($json, true)], 200);
     }
 }
+

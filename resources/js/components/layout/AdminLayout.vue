@@ -68,16 +68,17 @@ const navItems = computed<NavItem[]>(() => [
       children: [
         { label: 'Monitoring SPA', path: '/penerimaan/manajemen-spa', permission: 'penerimaan.spa.view' },
         { label: 'Monitoring Antrian', path: '/penerimaan/monitoring-antrian', permission: 'penerimaan.antrian.view' },
-        { label: 'Data Pemasukan', path: '/penerimaan/data-pemasukan', permission: 'penerimaan.pemasukan.view' },
+        { label: 'Data Pemasukan', path: '/penerimaan/data-pemasukan', permission: 'penerimaan.pemasukan.view|penerimaan.pemasukan.kebun.view|penerimaan.pemasukan.kategori.view|penerimaan.pemasukan.wilayah.view|penerimaan.pemasukan.sisa_pagi.view|penerimaan.pemasukan.digiling_spa.view' },
       ],
     },
     {
         label: 'Analisa QA',
         icon: FlaskConicalIcon,
-        permission: 'lab_qa.view',
+        permission: 'lab_qa.view|lab_qa.pos_npp',
         children: [
             { label: 'Pabrik Gula',    path: '/lab-qa', permission: 'lab_qa.view' },
             { label: 'Pabrik Alkohol', path: '/lab-qa/alkohol', permission: 'lab_qa.view' },
+            { label: 'Pos NPP',        path: '/lab-qa/pos-npp', permission: 'lab_qa.pos_npp' },
         ],
     },
    {
@@ -459,4 +460,20 @@ async function handleLogout() {
 .scrollbar-thin::-webkit-scrollbar { width: 4px; }
 .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
 .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(156,163,175,0.4); border-radius: 2px; }
+
+@media print {
+  aside,
+  header {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  .lg\:ml-\[260px\],
+  .lg\:ml-\[72px\] {
+    margin-left: 0 !important;
+  }
+}
 </style>
