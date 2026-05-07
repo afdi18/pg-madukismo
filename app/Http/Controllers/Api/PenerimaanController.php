@@ -163,7 +163,7 @@ class PenerimaanController extends Controller
             FROM TBL_TEBUMSK a
             INNER JOIN TBL_MSTKEBUN b ON a.induk = b.induk
             INNER JOIN TBL_KTGR c ON b.IDSTT=c.IDKTGR
-            WHERE NOT a.BRUTTO IS NULL AND TARA IS NULL AND NO_LORI IS NULL
+            WHERE NOT a.BRUTTO IS NULL AND TARA IS NULL AND a.TGL_BATAL IS NULL AND NO_LORI IS NULL
             ORDER BY tgl_msk ASC
         ";
 
@@ -202,7 +202,7 @@ class PenerimaanController extends Controller
             FROM TBL_TEBUMSK a
             INNER JOIN TBL_MSTKEBUN b ON a.induk = b.induk
             INNER JOIN TBL_KTGR c ON b.IDSTT=c.IDKTGR
-            WHERE NOT a.TGL_MSK IS NULL AND a.BRUTTO IS NULL
+            WHERE NOT a.TGL_MSK IS NULL AND a.TGL_BATAL IS NULL AND a.BRUTTO IS NULL
             ORDER BY tgl_msk ASC
         ";
 
