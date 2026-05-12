@@ -1,4 +1,9 @@
 # Dashboard Monitoring PG Madukismo
+
+## Deploy Production
+
+- Panduan deploy ke CyberPanel: `docs/DEPLOY_CYBERPANEL.md`
+
 ## Panduan Instalasi & Setup
 
 ---

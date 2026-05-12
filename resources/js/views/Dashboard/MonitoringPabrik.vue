@@ -11,7 +11,7 @@ const updatedAt = ref(new Date().toLocaleString('id-ID'))
 const wsStatus = ref<WsStatus>('disconnected')
 const wsError = ref('')
 const wsPayload = ref<RealtimePayload | null>(null)
-const wsUrl = 'ws://36.67.9.117:3000'
+const wsUrl = import.meta.env.VITE_WS_URL || 'ws://10.10.1.151:3000'
 let websocket: WebSocket | null = null
 
 const authStore = useAuthStore()
