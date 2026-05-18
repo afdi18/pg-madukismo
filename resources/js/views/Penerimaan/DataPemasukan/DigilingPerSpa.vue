@@ -51,8 +51,20 @@ function padHari(value: number): string {
 }
 
 function formatCell(column: string, value: unknown): string {
-    const key = column.toLowerCase()
+  const key = column.toLowerCase()
   if (value === null || value === undefined) return '-'
+
+  // Tampilkan 2 desimal untuk kolom rendemen dan brix, serta pol
+  if (key === 'rendemen' || key === 'brix' || key === 'pol') {
+    const num = Number(value)
+    if (!isNaN(num)) {
+      return num.toLocaleString('id-ID', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    }
+    return '-'
+  }
 
   if (typeof value === 'number') {
     return value.toLocaleString('id-ID', {
