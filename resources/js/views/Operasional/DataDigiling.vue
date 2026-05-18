@@ -27,6 +27,7 @@ const siangRows = ref<DigilingRow[]>([])
 const malamRows = ref<DigilingRow[]>([])
 const antrianTrukCount = ref(0)
 const antrianLoriCount = ref(0)
+const antrianLoriMerahCount = ref(0)
 const antrianLoriBerat = ref(0)
 const isLoading = ref(false)
 const isBackgroundRefresh = ref(false)
@@ -122,6 +123,7 @@ async function loadMonitoringAntrianSummary() {
 
     antrianTrukCount.value = Number(summary.antrian_truk ?? 0)
     antrianLoriCount.value = Number(summary.antrian_lori ?? 0)
+    antrianLoriMerahCount.value = Number(summary.antrian_lori_merah ?? 0)
     antrianLoriBerat.value = Number(summary.berat_lori ?? 0)
   } catch (error) {
     console.error('Gagal memuat ringkasan antrian:', error)
@@ -274,7 +276,7 @@ onBeforeUnmount(() => {
             </div>
             <div class="min-w-[96px] lg:min-w-[100px] px-2.5 py-2 rounded-lg bg-slate-800 border border-slate-700">
               <span class="text-indigo-300 font-semibold">Antrian Lori</span>
-              <p class="text-2xl leading-6 font-extrabold text-indigo-200">{{ formatNumber(antrianLoriCount) }}</p>
+              <p class="text-2xl leading-6 font-extrabold text-indigo-200">{{ formatNumber(antrianLoriCount) }} <span class="text-red-500 text-sm">({{ formatNumber(antrianLoriMerahCount) }})</span></p>
               <p class="text-sm leading-4 font-bold text-indigo-200">{{ formatNumber(antrianLoriBerat) }} Ku</p>
             </div>
           </div>

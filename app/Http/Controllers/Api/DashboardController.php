@@ -295,6 +295,7 @@ class DashboardController extends Controller
             "SELECT
                 COUNT(CASE WHEN NOT TGL_MSK IS NULL AND BRUTTO IS NULL THEN SPA END)+COUNT(CASE WHEN NOT TGL_MSK IS NULL AND NOT BRUTTO IS NULL AND NETTO IS NULL AND NO_LORI IS NULL THEN SPA END) AS antrian_truk,
                 COUNT(CASE WHEN NOT NO_LORI IS NULL AND NOT NETTO IS NULL AND HR_GIL IS NULL THEN SPA END) AS antrian_lori,
+                COUNT(CASE WHEN NOT NO_LORI IS NULL AND NOT NETTO IS NULL AND HR_GIL IS NULL AND DATEDIFF(HOUR, tgl_msk, GETDATE()) > 36 THEN SPA END) AS antrian_lori_merah,
                 SUM(CASE WHEN NOT NO_LORI IS NULL AND NOT NETTO IS NULL AND HR_GIL IS NULL THEN ISNULL(KW_NETTO, 0) ELSE 0 END) AS berat_lori
              FROM TBL_TEBUMSK"
         );
@@ -303,6 +304,7 @@ class DashboardController extends Controller
             'data' => [
                 'antrian_truk' => (int) ($summary->antrian_truk ?? 0),
                 'antrian_lori' => (int) ($summary->antrian_lori ?? 0),
+                'antrian_lori_merah' => (int) ($summary->antrian_lori_merah ?? 0),
                 'berat_lori' => (float) ($summary->berat_lori ?? 0),
             ],
         ]);
