@@ -330,9 +330,28 @@ function centerOnPos(p: any) {
 }
 
 async function copyCoords(p: any) {
+  const text = `${p.LAT}, ${p.LONG}`
+  // Modern clipboard API
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success('Koordinat disalin: ' + text)
+      return
+    } catch (e) {
+      // fallback below
+    }
+  }
+  // Fallback for insecure context or older browser
   try {
-    const text = `${p.LAT}, ${p.LONG}`
-    await navigator.clipboard.writeText(text)
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.setAttribute('readonly', '')
+    textarea.style.position = 'absolute'
+    textarea.style.left = '-9999px'
+    document.body.appendChild(textarea)
+    textarea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textarea)
     toast.success('Koordinat disalin: ' + text)
   } catch (e) {
     console.error(e)
@@ -477,16 +496,16 @@ async function copyCoords(p: any) {
   <ModalCard v-model="showEditModal" sizeClass="max-w-2xl">
     <template #header>
       <div class="p-6 border-b dark:border-gray-800">
-        <h3 class="text-xl font-semibold">Edit Perangkat</h3>
-        <p class="text-sm text-gray-500 mt-1">Ubah pengaturan jarak maksimum dan masa berlaku SPA untuk perangkat ini.</p>
+        <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-200">Edit Perangkat</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Ubah pengaturan jarak maksimum dan masa berlaku SPA untuk perangkat ini.</p>
       </div>
     </template>
 
     <div class="p-6">
       <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="md:col-span-2">
-          <label class="text-sm text-gray-600">POS Perangkat</label>
-          <select v-model.number="editPosId" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800">
+          <label class="text-sm text-gray-600 dark:text-gray-400">POS Perangkat</label>
+          <select v-model.number="editPosId" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:text-gray-400">
             <option :value="null">-- Pilih POS --</option>
             <option v-for="p in posList" :key="p.IDPOS" :value="Number(p.IDPOS)">
               {{ p.NMPOS }} (ID: {{ p.IDPOS }})
@@ -494,12 +513,12 @@ async function copyCoords(p: any) {
           </select>
         </div>
         <div>
-          <label class="text-sm text-gray-600">Maks Jarak (meter)</label>
-          <input type="number" v-model.number="editMeter" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800" />
+          <label class="text-sm text-gray-600 dark:text-gray-400">Maks Jarak (meter)</label>
+          <input type="number" v-model.number="editMeter" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:text-gray-400" />
         </div>
         <div>
-          <label class="text-sm text-gray-600">Hari Expired SPA</label>
-          <input type="number" v-model.number="editHari" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800" />
+          <label class="text-sm text-gray-600 dark:text-gray-400">Hari Expired SPA</label>
+          <input type="number" v-model.number="editHari" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:text-gray-400  " />
         </div>
       </div>
     </div>
@@ -527,14 +546,14 @@ async function copyCoords(p: any) {
     <div class="p-4">
       <div v-if="filteredPos.length === 0" class="text-sm text-gray-500">Tidak ada POS cocok.</div>
       <div v-else class="space-y-2">
-        <div v-for="p in filteredPos" :key="p.IDPOS" class="flex items-center justify-between p-2 border rounded">
+        <div v-for="p in filteredPos" :key="p.IDPOS" class="flex items-center justify-between p-2 border rounded hover:bg-slate-50 dark:hover:bg-slate-800">
           <div>
-            <div class="font-medium text-slate-700">{{ p.NMPOS }}</div>
-            <div class="text-xs text-gray-500">ID: {{ p.IDPOS }} — Lat: {{ p.LAT }}, Long: {{ p.LONG }}</div>
+            <div class="font-medium text-slate-700 dark:text-gray-100">{{ p.NMPOS }}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">ID: {{ p.IDPOS }} — Lat: {{ p.LAT }}, Long: {{ p.LONG }}</div>
           </div>
           <div class="flex items-center gap-2">
             <button @click.prevent="openEditPos(p)" class="px-3 py-1 bg-amber-500 text-white rounded text-sm">Edit</button>
-            <button @click.prevent="centerOnPos(p)" class="px-3 py-1 bg-sky-600 text-white rounded text-sm">Pusat</button>
+            <!-- <button @click.prevent="centerOnPos(p)" class="px-3 py-1 bg-sky-600 text-white rounded text-sm">Pusat</button> -->
             <button @click.prevent="copyCoords(p)" class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm">Salin</button>
           </div>
         </div>
