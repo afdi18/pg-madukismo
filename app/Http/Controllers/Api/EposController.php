@@ -44,6 +44,53 @@ class EposController extends Controller
         }
     }
 
+    public function pospantau() {
+        try {
+            $rows = DB::connection('sqlsrv')->select("SELECT IDPOS as idpos, NMPOS as nmpos FROM [dbo].[TBL_POS_PANTAU]");
+            return response()->json(['data' => $rows], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function spaData(Request $request) {
+        try {
+            $tgl = $request->input('tgl');
+            $pos = $request->input('pos');
+            $sql = "SELECT b.IDPOS, b.NMPOS, a.SPA, a.NOPOL, a.TGLINP as [TGL CETAK SPA], c.TGL_MSK as [TGL MASUK GAWANG], DATEDIFF(hour,a.TGLINP, c.TGL_MSK) as [LAMA JALAN] FROM [dbo].[TBL_MASTSPA] AS a INNER JOIN [dbo].[TBL_POS_PANTAU] AS b ON RIGHT(LEFT(a.SPA,2),1)=b.IDPOS LEFT JOIN [dbo].[TBL_TEBUMSK] AS c ON a.SPA=c.SPA WHERE CAST(a.TGLINP AS DATE) = ?";
+            $params = [$tgl];
+            if ($pos) {
+                $sql .= " AND b.IDPOS = ?";
+                $params[] = $pos;
+            }
+            $rows = DB::connection('sqlsrv')->select($sql, $params);
+
+            // summary aggregate query
+            $summarySql = "SELECT b.IDPOS, b.NMPOS, ISNULL(COUNT(a.SPA),0) as JML FROM [dbo].[TBL_MASTSPA] AS a LEFT JOIN [dbo].[TBL_POS_PANTAU] AS b ON RIGHT(LEFT(a.SPA,2),1)=b.IDPOS WHERE CAST(a.TGLINP AS DATE) = ? GROUP BY b.IDPOS,b.NMPOS";
+            $summaryRows = DB::connection('sqlsrv')->select($summarySql, [$tgl]);
+            // Map to card
+            $madubaru = 0; $sragenTimur = 0; $sragenBarat = 0; $sragenSelatan = 0;
+            foreach ($summaryRows as $row) {
+                if (in_array($row->IDPOS, [1,2,3,4,5])) $madubaru += (int)$row->JML;
+                if ($row->IDPOS == 6) $sragenTimur += (int)$row->JML;
+                if ($row->IDPOS == 7) $sragenBarat += (int)$row->JML;
+                if ($row->IDPOS == 9) $sragenSelatan += (int)$row->JML;
+            }
+            $summary = [
+                'madubaru' => $madubaru,
+                'sragenTimur' => $sragenTimur,
+                'sragenBarat' => $sragenBarat,
+                'sragenSelatan' => $sragenSelatan,
+            ];
+            return response()->json([
+                'rows' => $rows,
+                'summary' => $summary,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
     // List master POS untuk pengunci cetak SPTA (SIMANTEBU)
     public function mstpos()
     {

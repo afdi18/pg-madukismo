@@ -89,6 +89,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
                ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
           Route::get('/pos', [\App\Http\Controllers\Api\EposController::class, 'posList'])
                ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
+          Route::get('/pospantau', [\App\Http\Controllers\Api\EposController::class, 'pospantau'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
+          Route::get('/spa-data', [\App\Http\Controllers\Api\EposController::class, 'spaData'])
+               ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
           Route::get('/mstpos', [\App\Http\Controllers\Api\EposController::class, 'mstpos'])
                ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
           Route::post('/mstpos/kunci', [\App\Http\Controllers\Api\EposController::class, 'setMstposKunci'])
