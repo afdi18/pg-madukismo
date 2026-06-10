@@ -9,6 +9,40 @@ use Illuminate\Support\Facades\DB;
 class PenerimaanController extends Controller
 {
     /**
+     * Return data digiling per Pos dari SP Proc_Gil_PerPos.
+     * Parameter: hr_gil (maksimum mengikuti HRGIL pada TBL_DEFAULT)
+     */
+    public function digilingPerPos(Request $request)
+    {
+        $defaultRow = DB::connection('sqlsrv')->selectOne(
+            'SELECT TOP 1 HRGIL FROM TBL_DEFAULT WHERE SETT = 1'
+        );
+
+        $maxHrGil = isset($defaultRow->HRGIL) ? max(1, (int) $defaultRow->HRGIL) : 1;
+        $requestedHrGil = (int) $request->query('hr_gil', $maxHrGil);
+        $hrGil = min($maxHrGil, max(1, $requestedHrGil));
+        $hrGilPadded = str_pad((string) $hrGil, 3, '0', STR_PAD_LEFT);
+
+        $rows = DB::connection('sqlsrv')->select('EXEC Proc_Gil_PerPos ?', [$hrGilPadded]);
+
+        $payload = [
+            'data' => $rows,
+            'meta' => [
+                'hr_gil' => $hrGil,
+                'max_hr_gil' => $maxHrGil,
+            ],
+        ];
+
+        $jsonOptions = defined('JSON_PARTIAL_OUTPUT_ON_ERROR') ? JSON_PARTIAL_OUTPUT_ON_ERROR : 0;
+        if (defined('JSON_INVALID_UTF8_IGNORE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_IGNORE;
+        } elseif (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+            $jsonOptions |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+
+        return response()->json($payload, 200, [], $jsonOptions);
+    }
+    /**
      * Return paginated list of SPA from SQL Server (TIMB_MK).
      * Query uses raw SQL on the `sqlsrv` connection.
      */

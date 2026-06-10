@@ -4,6 +4,10 @@ namespace App\Enums;
 
 enum Permission: string
 {
+    // DIGILING PER POS (SQL Server)
+    case PENERIMAAN_PEMASUKAN_DIGILING_POS_VIEW = 'penerimaan.pemasukan.digiling_pos.view';
+    case PENERIMAAN_PEMASUKAN_DIGILING_POS_EXPORT = 'penerimaan.pemasukan.digiling_pos.export';
+    case PENERIMAAN_PEMASUKAN_DIGILING_POS_PRINT = 'penerimaan.pemasukan.digiling_pos.print';
     // ================================================================
     // DASHBOARD & MONITORING
     // ================================================================
@@ -172,6 +176,9 @@ enum Permission: string
             self::SISTEM_SETTINGS          => 'Pengaturan Sistem',
             self::SISTEM_LOGS              => 'Lihat Log Sistem',
             self::SISTEM_BACKUP            => 'Backup Sistem',
+            self::PENERIMAAN_PEMASUKAN_DIGILING_POS_VIEW => 'Akses Data Pemasukan - Tab Digiling per Pos',
+            self::PENERIMAAN_PEMASUKAN_DIGILING_POS_EXPORT => 'Export Data Pemasukan - Tab Digiling per Pos',
+            self::PENERIMAAN_PEMASUKAN_DIGILING_POS_PRINT => 'Cetak Data Pemasukan - Tab Digiling per Pos',
         };
     }
 
@@ -239,6 +246,9 @@ enum Permission: string
             self::PENERIMAAN_PEMASUKAN_SISA_PAGI_PRINT->value,
             self::PENERIMAAN_PEMASUKAN_DIGILING_SPA_EXPORT->value,
             self::PENERIMAAN_PEMASUKAN_DIGILING_SPA_PRINT->value,
+            self::PENERIMAAN_PEMASUKAN_DIGILING_POS_VIEW->value,
+            self::PENERIMAAN_PEMASUKAN_DIGILING_POS_EXPORT->value,
+            self::PENERIMAAN_PEMASUKAN_DIGILING_POS_PRINT->value,
             self::PENERIMAAN_EXPORT->value,
             self::PENERIMAAN_PRINT->value,
             self::OPERASIONAL_VIEW->value,
@@ -268,6 +278,7 @@ enum Permission: string
             self::PENERIMAAN_PEMASUKAN_WILAYAH_VIEW->value,
             self::PENERIMAAN_PEMASUKAN_SISA_PAGI_VIEW->value,
             self::PENERIMAAN_PEMASUKAN_DIGILING_SPA_VIEW->value,
+            self::PENERIMAAN_PEMASUKAN_DIGILING_POS_VIEW->value,
             self::PENERIMAAN_CREATE->value,
             self::PENERIMAAN_UPDATE->value,
             self::OPERASIONAL_VIEW->value,
@@ -295,6 +306,7 @@ enum Permission: string
             self::PENERIMAAN_PEMASUKAN_WILAYAH_VIEW->value,
             self::PENERIMAAN_PEMASUKAN_SISA_PAGI_VIEW->value,
             self::PENERIMAAN_PEMASUKAN_DIGILING_SPA_VIEW->value,
+            self::PENERIMAAN_PEMASUKAN_DIGILING_POS_VIEW->value,
             self::OPERASIONAL_VIEW->value,
         ];
     }

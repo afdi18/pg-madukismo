@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+
 import DataSPA from './DataSPA.vue'
 import PengaturanEPOS from './PengaturanEPOS.vue'
 
 const authStore = useAuthStore()
-const activeTab = ref<'data' | 'epos'>('data')
+const activeTab = ref<'data' | 'epos' | 'digilingperpos'>('data')
 
-function setTab(t: 'data' | 'epos') {
+function setTab(t: 'data' | 'epos' | 'digilingperpos') {
   activeTab.value = t
 }
 
@@ -59,10 +60,10 @@ function setTab(t: 'data' | 'epos') {
 
     <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
       <div v-if="activeTab === 'data'" class="p-4">
-          <DataSPA />
+        <DataSPA />
       </div>
       <div v-else class="p-4">
-          <PengaturanEPOS />
+        <PengaturanEPOS />
       </div>
     </div>
   </div>

@@ -6,8 +6,9 @@ import PemasukanPerKategori from './PemasukanPerKategori.vue'
 import PemasukanPerWilayah from './PemasukanPerWilayah.vue'
 import SisaPagi from './SisaPagi.vue'
 import DigilingPerSpa from './DigilingPerSpa.vue'
+import DigilingPerPos from './DigilingPerPos.vue'
 
-type TabKey = 'kebun' | 'kategori' | 'wilayah' | 'sisa-pagi' | 'digiling-spa'
+type TabKey = 'kebun' | 'kategori' | 'wilayah' | 'sisa-pagi' | 'digiling-spa' | 'digiling-pos'
 
 interface DataPemasukanTab {
   key: TabKey
@@ -23,6 +24,7 @@ const tabs: DataPemasukanTab[] = [
   { key: 'kategori', label: 'Pemasukan per Kategori', permission: 'penerimaan.pemasukan.kategori.view' },
   { key: 'wilayah', label: 'Pemasukan per Wilayah', permission: 'penerimaan.pemasukan.wilayah.view' },
   { key: 'digiling-spa', label: 'Digiling per SPA', permission: 'penerimaan.pemasukan.digiling_spa.view' },
+  { key: 'digiling-pos', label: 'Digiling per Pos', permission: 'digilingperpos.view' },
 ]
 
 const activeTab = ref<TabKey>('sisa-pagi')
@@ -99,6 +101,7 @@ watch(
       <PemasukanPerWilayah v-else-if="activeTab === 'wilayah'" />
       <SisaPagi v-else-if="activeTab === 'sisa-pagi'" />
       <DigilingPerSpa v-else-if="activeTab === 'digiling-spa'" />
+      <DigilingPerPos v-else-if="activeTab === 'digiling-pos'" />
     </template>
   </div>
 </template>

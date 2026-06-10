@@ -179,6 +179,15 @@ const menuAccessGroups: MenuAccessGroup[] = [
           { key: 'print', label: 'Cetak', permissionNames: ['penerimaan.pemasukan.digiling_spa.print'] },
         ],
       },
+      {
+        key: 'penerimaan-data-pemasukan-digiling-pos',
+        label: 'Tab Digiling per Pos',
+        actions: [
+          { key: 'view', label: 'Lihat', permissionNames: ['penerimaan.pemasukan.digiling_pos.view'] },
+          { key: 'export', label: 'Export', permissionNames: ['penerimaan.pemasukan.digiling_pos.export'] },
+          { key: 'print', label: 'Cetak', permissionNames: ['penerimaan.pemasukan.digiling_pos.print'] },
+        ],
+      },
     ],
   },
   {

@@ -59,8 +59,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
      // PENERIMAAN (SQL Server - TBL_MASTSPA)
      // ============================================================
      Route::prefix('penerimaan')->group(function () {
-          Route::get('/', [\App\Http\Controllers\Api\PenerimaanController::class, 'index'])
-                ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
+              Route::get('/', [\App\Http\Controllers\Api\PenerimaanController::class, 'index'])
+                   ->middleware(AbacMiddleware::class . ':penerimaan.spa.view');
               Route::get('/antrian-lori', [\App\Http\Controllers\Api\PenerimaanController::class, 'antrianLori'])
                    ->middleware(AbacMiddleware::class . ':penerimaan.antrian.view');
               Route::get('/antrian-truk-sudah-timbang', [\App\Http\Controllers\Api\PenerimaanController::class, 'antrianTrukSudahTimbang'])
@@ -79,6 +79,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
                    ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.sisa_pagi.view,penerimaan.pemasukan.view');
               Route::get('/digiling-per-spa', [\App\Http\Controllers\Api\PenerimaanController::class, 'digilingPerSpa'])
                    ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.digiling_spa.view,penerimaan.pemasukan.view');
+             Route::get('/digiling-per-pos', [\App\Http\Controllers\Api\PenerimaanController::class, 'digilingPerPos'])
+                  ->middleware(AbacMiddleware::class . ':penerimaan.pemasukan.digiling_pos.view');
      });
 
      // ============================================================
