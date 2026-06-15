@@ -174,6 +174,18 @@ function isHkParameter(parameterName: string): boolean {
   return /\bhk$/i.test(parameterName)
 }
 
+function isNilaiNppParameter(parameterName: string): boolean {
+  return /^nilai\s*npp$/i.test(parameterName.trim())
+}
+
+function isGil1BrixParameter(parameterName: string): boolean {
+  return /^gil\.?\s*1\s+brix$/i.test(parameterName.trim())
+}
+
+function isGil1PolParameter(parameterName: string): boolean {
+  return /^gil\.?\s*1\s+pol$/i.test(parameterName.trim())
+}
+
 function getParameterGroupKey(parameterName: string): string {
   return parameterName
     .replace(/\s+(brix|pol|hk)$/i, '')
@@ -202,6 +214,19 @@ function isAutoCalculatedHk(parameter: Parameter): boolean {
 
   const groupKey = getParameterGroupKey(parameter.nama_parameter)
   return !!findParameterByType(groupKey, 'brix') && !!findParameterByType(groupKey, 'pol')
+}
+
+function isAutoCalculatedNpp(parameter: Parameter): boolean {
+  if (!isNilaiNppParameter(parameter.nama_parameter)) return false
+
+  const hasGil1Brix = parameterList.value.some((item) => isGil1BrixParameter(item.nama_parameter))
+  const hasGil1Pol = parameterList.value.some((item) => isGil1PolParameter(item.nama_parameter))
+
+  return hasGil1Brix && hasGil1Pol
+}
+
+function isAutoCalculatedParameter(parameter: Parameter): boolean {
+  return isAutoCalculatedHk(parameter) || isAutoCalculatedNpp(parameter)
 }
 
 function syncAutoCalculatedHk(changedParameterId: number) {
@@ -235,10 +260,43 @@ function syncAutoCalculatedHk(changedParameterId: number) {
   hkTarget.nilai_aktual = formatAutoCalculatedValue((polValue / brixValue) * 100)
 }
 
-function recalculateAutoCalculatedHk() {
+function syncAutoCalculatedNpp(changedParameterId: number) {
+  const changedParameter = parameterList.value.find((parameter) => parameter.id === changedParameterId)
+  if (!changedParameter) return
+
+  const isGil1BrixOrPol = isGil1BrixParameter(changedParameter.nama_parameter) || isGil1PolParameter(changedParameter.nama_parameter)
+  if (!isGil1BrixOrPol) return
+
+  const gil1BrixParameter = parameterList.value.find((parameter) => isGil1BrixParameter(parameter.nama_parameter))
+  const gil1PolParameter = parameterList.value.find((parameter) => isGil1PolParameter(parameter.nama_parameter))
+  const nilaiNppParameter = parameterList.value.find((parameter) => isNilaiNppParameter(parameter.nama_parameter))
+
+  if (!gil1BrixParameter || !gil1PolParameter || !nilaiNppParameter) return
+
+  const brixRaw = getNilai(gil1BrixParameter.id)
+  const polRaw = getNilai(gil1PolParameter.id)
+  const brixValue = Number(brixRaw)
+  const polValue = Number(polRaw)
+  const nppTarget = form.parameters.find((item) => item.parameter_id === nilaiNppParameter.id)
+
+  if (!nppTarget) return
+
+  const hasValidBrix = brixRaw !== '' && !Number.isNaN(brixValue)
+  const hasValidPol = polRaw !== '' && !Number.isNaN(polValue)
+
+  if (!hasValidBrix || !hasValidPol) {
+    nppTarget.nilai_aktual = ''
+    return
+  }
+
+  nppTarget.nilai_aktual = formatAutoCalculatedValue(polValue - 0.4 * (brixValue - polValue))
+}
+
+function recalculateAutoCalculatedFields() {
   for (const parameter of parameterList.value) {
     if (!isBrixParameter(parameter.nama_parameter) && !isPolParameter(parameter.nama_parameter)) continue
     syncAutoCalculatedHk(parameter.id)
+    syncAutoCalculatedNpp(parameter.id)
   }
 }
 
@@ -251,6 +309,7 @@ function setNilai(parameterId: number, value: string) {
   if (target) {
     target.nilai_aktual = value
     syncAutoCalculatedHk(parameterId)
+    syncAutoCalculatedNpp(parameterId)
   }
 }
 
@@ -461,7 +520,7 @@ async function submitForm() {
     return
   }
 
-  recalculateAutoCalculatedHk()
+  recalculateAutoCalculatedFields()
 
   if (!form.petugas.trim() || !form.tanggal || !form.jam || !form.shift) {
     toast.error('Lengkapi data header (tanggal, jam, shift, petugas) sebelum menyimpan.')
@@ -599,7 +658,7 @@ async function editHistoryEntryById(headerId: number): Promise<boolean> {
       parameter_id: parameter.id,
       nilai_aktual: detailValueMap.get(parameter.id) ?? '',
     }))
-    recalculateAutoCalculatedHk()
+    recalculateAutoCalculatedFields()
 
     window.scrollTo({ top: 0, behavior: 'smooth' })
     return true
@@ -896,13 +955,13 @@ onBeforeUnmount(() => {
                   :value="getNilai(parameter.id)"
                   @input="setNilai(parameter.id, String(($event.target as HTMLInputElement).value))"
                   :tabindex="100 + index"
-                  :readonly="isAutoCalculatedHk(parameter)"
+                  :readonly="isAutoCalculatedParameter(parameter)"
                   type="number"
                   step="any"
-                  :placeholder="isAutoCalculatedHk(parameter) ? 'Auto' : '0'"
+                  :placeholder="isAutoCalculatedParameter(parameter) ? 'Auto' : '0'"
                   :class="[
                     'flex-1 min-w-0 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none placeholder-gray-400 dark:placeholder-gray-600',
-                    isAutoCalculatedHk(parameter) ? 'cursor-not-allowed bg-gray-100 dark:bg-gray-700/70' : '',
+                    isAutoCalculatedParameter(parameter) ? 'cursor-not-allowed bg-gray-100 dark:bg-gray-700/70' : '',
                     getStatus(parameter.id) === 'alert'
                       ? 'bg-red-50 dark:bg-red-900/10'
                       : getStatus(parameter.id) === 'safe'
