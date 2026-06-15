@@ -191,6 +191,14 @@ function isKapGilinganParameter(parameterName: string): boolean {
   return name.includes('kap. giling') || name.includes('kap. gilingan')
 }
 
+function isNmKuNettoParameter(parameterName: string): boolean {
+  return /^nm\s*ku\s*netto$/i.test(parameterName.trim())
+}
+
+function isNmPersenTebuParameter(parameterName: string): boolean {
+  return /^nm\s*%\s*tebu$/i.test(parameterName.trim())
+}
+
 function getKapGilinganParameterId(): number | null {
   const kapParameter = parameterList.value.find((parameter) => isKapGilinganParameter(parameter.nama_parameter))
   return kapParameter ? kapParameter.id : null
@@ -257,8 +265,20 @@ function isAutoCalculatedKapGilingan(parameter: Parameter): boolean {
   return isKapGilinganParameter(parameter.nama_parameter)
 }
 
+function isAutoCalculatedNmPersenTebu(parameter: Parameter): boolean {
+  if (!isNmPersenTebuParameter(parameter.nama_parameter)) return false
+
+  const hasNmKuNetto = parameterList.value.some((item) => isNmKuNettoParameter(item.nama_parameter))
+  const hasKapGilingan = parameterList.value.some((item) => isKapGilinganParameter(item.nama_parameter))
+
+  return hasNmKuNetto && hasKapGilingan
+}
+
 function isAutoCalculatedParameter(parameter: Parameter): boolean {
-  return isAutoCalculatedHk(parameter) || isAutoCalculatedNpp(parameter) || isAutoCalculatedKapGilingan(parameter)
+  return isAutoCalculatedHk(parameter)
+    || isAutoCalculatedNpp(parameter)
+    || isAutoCalculatedKapGilingan(parameter)
+    || isAutoCalculatedNmPersenTebu(parameter)
 }
 
 function syncAutoCalculatedHk(changedParameterId: number) {
@@ -324,11 +344,49 @@ function syncAutoCalculatedNpp(changedParameterId: number) {
   nppTarget.nilai_aktual = formatAutoCalculatedValue(polValue - 0.4 * (brixValue - polValue))
 }
 
+function syncAutoCalculatedNmPersenTebu(changedParameterId: number) {
+  const changedParameter = parameterList.value.find((parameter) => parameter.id === changedParameterId)
+  if (!changedParameter) return
+
+  const isNmKuNettoOrKapGilingan = isNmKuNettoParameter(changedParameter.nama_parameter)
+    || isKapGilinganParameter(changedParameter.nama_parameter)
+  if (!isNmKuNettoOrKapGilingan) return
+
+  const nmKuNettoParameter = parameterList.value.find((parameter) => isNmKuNettoParameter(parameter.nama_parameter))
+  const kapGilinganParameter = parameterList.value.find((parameter) => isKapGilinganParameter(parameter.nama_parameter))
+  const nmPersenTebuParameter = parameterList.value.find((parameter) => isNmPersenTebuParameter(parameter.nama_parameter))
+
+  if (!nmKuNettoParameter || !kapGilinganParameter || !nmPersenTebuParameter) return
+
+  const nmKuNettoRaw = getNilai(nmKuNettoParameter.id)
+  const kapGilinganRaw = getNilai(kapGilinganParameter.id)
+  const nmKuNettoValue = Number(nmKuNettoRaw)
+  const kapGilinganValue = Number(kapGilinganRaw)
+  const nmPersenTebuTarget = form.parameters.find((item) => item.parameter_id === nmPersenTebuParameter.id)
+
+  if (!nmPersenTebuTarget) return
+
+  const hasValidNmKuNetto = nmKuNettoRaw !== '' && !Number.isNaN(nmKuNettoValue)
+  const hasValidKapGilingan = kapGilinganRaw !== '' && !Number.isNaN(kapGilinganValue) && kapGilinganValue !== 0
+
+  if (!hasValidNmKuNetto || !hasValidKapGilingan) {
+    nmPersenTebuTarget.nilai_aktual = ''
+    return
+  }
+
+  nmPersenTebuTarget.nilai_aktual = formatAutoCalculatedValue((nmKuNettoValue / kapGilinganValue) * 100)
+}
+
 function recalculateAutoCalculatedFields() {
   for (const parameter of parameterList.value) {
-    if (!isBrixParameter(parameter.nama_parameter) && !isPolParameter(parameter.nama_parameter)) continue
-    syncAutoCalculatedHk(parameter.id)
-    syncAutoCalculatedNpp(parameter.id)
+    if (isBrixParameter(parameter.nama_parameter) || isPolParameter(parameter.nama_parameter)) {
+      syncAutoCalculatedHk(parameter.id)
+      syncAutoCalculatedNpp(parameter.id)
+    }
+
+    if (isNmKuNettoParameter(parameter.nama_parameter) || isKapGilinganParameter(parameter.nama_parameter)) {
+      syncAutoCalculatedNmPersenTebu(parameter.id)
+    }
   }
 }
 
@@ -351,8 +409,10 @@ async function syncAutoCalculatedKapGilinganByJam() {
 
     const berat = Number(data?.data?.berat)
     kapTarget.nilai_aktual = Number.isFinite(berat) ? formatAutoCalculatedValue(berat) : ''
+    syncAutoCalculatedNmPersenTebu(kapParameter.id)
   } catch {
     kapTarget.nilai_aktual = ''
+    syncAutoCalculatedNmPersenTebu(kapParameter.id)
   }
 }
 
@@ -366,6 +426,7 @@ function setNilai(parameterId: number, value: string) {
     target.nilai_aktual = value
     syncAutoCalculatedHk(parameterId)
     syncAutoCalculatedNpp(parameterId)
+    syncAutoCalculatedNmPersenTebu(parameterId)
   }
 }
 
