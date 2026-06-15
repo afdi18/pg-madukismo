@@ -47,6 +47,44 @@ class LabQaController extends Controller
     }
 
     /**
+     * Ambil berat tebu digiling per jam untuk auto-fill Kap. Gilingan.
+     * Sumber data: SQL Server TBL_TEBUMSK berdasarkan HR_GIL default aktif.
+     */
+    public function kapGilinganByJam(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'jam' => ['required', 'date_format:H:i'],
+        ]);
+
+        $hour = (int) substr($validated['jam'], 0, 2);
+
+        $defaultRow = DB::connection('sqlsrv')->selectOne(
+            'SELECT TOP 1 HRGIL FROM TBL_DEFAULT WHERE SETT = 1'
+        );
+
+        $hrGiling = isset($defaultRow->HRGIL)
+            ? str_pad((string) $defaultRow->HRGIL, 3, '0', STR_PAD_LEFT)
+            : '001';
+
+        $row = DB::connection('sqlsrv')->selectOne(
+            'SELECT SUM(KW_NETTO) AS berat
+             FROM TBL_TEBUMSK
+             WHERE HR_GIL = ?
+               AND KW_NETTO IS NOT NULL
+               AND DATEPART(HOUR, TGL_GIL) = ?',
+            [$hrGiling, $hour]
+        );
+
+        return response()->json([
+            'data' => [
+                'jam' => str_pad((string) $hour, 2, '0', STR_PAD_LEFT) . ':00',
+                'berat' => (float) ($row->berat ?? 0),
+                'hr_gil' => $hrGiling,
+            ],
+        ]);
+    }
+
+    /**
      * Daftar data QA Header dengan filter
      */
     public function index(Request $request): JsonResponse

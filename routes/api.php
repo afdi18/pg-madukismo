@@ -146,6 +146,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
              ->middleware(AbacMiddleware::class . ':lab_qa.view');
         Route::get('/master/parameters', [\App\Http\Controllers\Api\LabQaController::class, 'parameterOptions'])
              ->middleware(AbacMiddleware::class . ':lab_qa.view');
+        Route::get('/kap-gilingan-by-jam', [\App\Http\Controllers\Api\LabQaController::class, 'kapGilinganByJam'])
+             ->middleware(AbacMiddleware::class . ':lab_qa.view');
 
         // Report
         Route::get('/report/alerts', [\App\Http\Controllers\Api\LabQaController::class, 'reportAlert'])

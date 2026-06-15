@@ -186,6 +186,34 @@ function isGil1PolParameter(parameterName: string): boolean {
   return /^gil\.?\s*1\s+pol$/i.test(parameterName.trim())
 }
 
+function isKapGilinganParameter(parameterName: string): boolean {
+  const name = parameterName.trim().toLowerCase()
+  return name.includes('kap. giling') || name.includes('kap. gilingan')
+}
+
+function getKapGilinganParameterId(): number | null {
+  const kapParameter = parameterList.value.find((parameter) => isKapGilinganParameter(parameter.nama_parameter))
+  return kapParameter ? kapParameter.id : null
+}
+
+function getTodayLocalDateYmd(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function isRunningGilingHour(): boolean {
+  if (!isJam24Valid.value) return false
+  if (!form.tanggal || form.tanggal !== getTodayLocalDateYmd()) return false
+
+  const jamHour = Number(form.jam.slice(0, 2))
+  if (Number.isNaN(jamHour)) return false
+
+  return jamHour === new Date().getHours()
+}
+
 function getParameterGroupKey(parameterName: string): string {
   return parameterName
     .replace(/\s+(brix|pol|hk)$/i, '')
@@ -225,8 +253,12 @@ function isAutoCalculatedNpp(parameter: Parameter): boolean {
   return hasGil1Brix && hasGil1Pol
 }
 
+function isAutoCalculatedKapGilingan(parameter: Parameter): boolean {
+  return isKapGilinganParameter(parameter.nama_parameter)
+}
+
 function isAutoCalculatedParameter(parameter: Parameter): boolean {
-  return isAutoCalculatedHk(parameter) || isAutoCalculatedNpp(parameter)
+  return isAutoCalculatedHk(parameter) || isAutoCalculatedNpp(parameter) || isAutoCalculatedKapGilingan(parameter)
 }
 
 function syncAutoCalculatedHk(changedParameterId: number) {
@@ -297,6 +329,30 @@ function recalculateAutoCalculatedFields() {
     if (!isBrixParameter(parameter.nama_parameter) && !isPolParameter(parameter.nama_parameter)) continue
     syncAutoCalculatedHk(parameter.id)
     syncAutoCalculatedNpp(parameter.id)
+  }
+}
+
+async function syncAutoCalculatedKapGilinganByJam() {
+  const kapParameter = parameterList.value.find((parameter) => isKapGilinganParameter(parameter.nama_parameter))
+  if (!kapParameter) return
+
+  const kapTarget = form.parameters.find((item) => item.parameter_id === kapParameter.id)
+  if (!kapTarget) return
+
+  if (!form.jam || !isJam24Valid.value) {
+    kapTarget.nilai_aktual = ''
+    return
+  }
+
+  try {
+    const { data } = await axios.get('/api/lab-qa/kap-gilingan-by-jam', {
+      params: { jam: form.jam },
+    })
+
+    const berat = Number(data?.data?.berat)
+    kapTarget.nilai_aktual = Number.isFinite(berat) ? formatAutoCalculatedValue(berat) : ''
+  } catch {
+    kapTarget.nilai_aktual = ''
   }
 }
 
@@ -431,6 +487,8 @@ function resetFormParameterValues() {
     ...item,
     nilai_aktual: '',
   }))
+
+  void syncAutoCalculatedKapGilinganByJam()
 }
 
 function cancelEditingEntry() {
@@ -504,6 +562,15 @@ watch(
       fetchParametersByStasiun(stasiunId),
       fetchHistory(stasiunId, 1, false),
     ])
+
+    await syncAutoCalculatedKapGilinganByJam()
+  }
+)
+
+watch(
+  () => form.jam,
+  async () => {
+    await syncAutoCalculatedKapGilinganByJam()
   }
 )
 
@@ -521,6 +588,10 @@ async function submitForm() {
   }
 
   recalculateAutoCalculatedFields()
+  await syncAutoCalculatedKapGilinganByJam()
+
+  const kapGilinganParameterId = getKapGilinganParameterId()
+  const skipKapGilinganOnSubmit = kapGilinganParameterId !== null && isRunningGilingHour()
 
   if (!form.petugas.trim() || !form.tanggal || !form.jam || !form.shift) {
     toast.error('Lengkapi data header (tanggal, jam, shift, petugas) sebelum menyimpan.')
@@ -540,11 +611,22 @@ async function submitForm() {
   saving.value = true
   try {
     const filledParameters = form.parameters
-      .filter((item) => item.nilai_aktual !== '')
+      .filter((item) => {
+        if (item.nilai_aktual === '') return false
+        if (skipKapGilinganOnSubmit && item.parameter_id === kapGilinganParameterId) return false
+        return true
+      })
       .map((item) => ({
         parameter_id: item.parameter_id,
         nilai_aktual: Number(item.nilai_aktual),
       }))
+
+    if (filledParameters.length === 0) {
+      toast.error(skipKapGilinganOnSubmit
+        ? 'Kap. Gilingan tidak disimpan karena jam giling masih berjalan. Isi parameter lain sebelum menyimpan.'
+        : 'Isi minimal satu nilai parameter sebelum menyimpan.')
+      return
+    }
 
     const payload = {
       tanggal: form.tanggal,
@@ -569,6 +651,17 @@ async function submitForm() {
 
       for (const item of form.parameters) {
         const detailId = editingDetailByParameterId.value[item.parameter_id]
+
+        if (skipKapGilinganOnSubmit && item.parameter_id === kapGilinganParameterId) {
+          if (detailId) {
+            detailUpdates.push(
+              axios.put(`/api/lab-qa/detail/${detailId}`, {
+                nilai_aktual: null,
+              })
+            )
+          }
+          continue
+        }
         
         if (detailId) {
           // Update existing detail
@@ -659,6 +752,7 @@ async function editHistoryEntryById(headerId: number): Promise<boolean> {
       nilai_aktual: detailValueMap.get(parameter.id) ?? '',
     }))
     recalculateAutoCalculatedFields()
+    await syncAutoCalculatedKapGilinganByJam()
 
     window.scrollTo({ top: 0, behavior: 'smooth' })
     return true
