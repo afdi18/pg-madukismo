@@ -36,16 +36,21 @@ type PosNppRow = {
 const tableRows = ref<PosNppRow[]>([])
 const loadingTable = ref(false)
 const hariGilingDropdownRef = ref<HTMLElement | null>(null)
+const gilingHourOrder = [...Array.from({ length: 18 }, (_, index) => index + 6), ...Array.from({ length: 6 }, (_, index) => index)]
 
 const hariGilingOptions = computed(() => {
     const maxDay = Math.max(1, Number(latestHariGiling.value || 1))
     return Array.from({ length: maxDay }, (_, index) => maxDay - index)
 })
-const maxSelectableHour = computed(() => {
+const jamOptions = computed(() => {
     const isTodayGiling = Number(hariGiling.value) === Number(latestHariGiling.value)
-    return isTodayGiling ? Math.min(23, currentHour.value) : 23
+    if (!isTodayGiling) return gilingHourOrder
+
+    const currentHourIndex = gilingHourOrder.indexOf(currentHour.value)
+    if (currentHourIndex === -1) return gilingHourOrder
+
+    return gilingHourOrder.slice(0, currentHourIndex + 1)
 })
-const jamOptions = computed(() => Array.from({ length: maxSelectableHour.value + 1 }, (_, index) => index))
 const menitOptions = [0, 30]
 const selectedHariGilingLabel = computed(() => String(hariGiling.value || 1).padStart(3, '0'))
 
@@ -97,8 +102,8 @@ function setCurrentTimeDefaults() {
 function refreshCurrentHourLimit() {
     currentHour.value = new Date().getHours()
 
-    if (jam.value > maxSelectableHour.value) {
-        jam.value = maxSelectableHour.value
+    if (!jamOptions.value.includes(jam.value)) {
+        jam.value = jamOptions.value[jamOptions.value.length - 1] ?? gilingHourOrder[0]
     }
 }
 
