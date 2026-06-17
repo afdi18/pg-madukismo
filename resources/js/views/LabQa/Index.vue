@@ -61,6 +61,7 @@ const authStore = useAuthStore()
 const editingHeaderId = ref<number | null>(null)
 const deletingHeaderId = ref<number | null>(null)
 const editingDetailByParameterId = ref<Record<number, number>>({})
+const kapGilinganManualOverride = ref(false)
 
 const stasiunList = ref<Stasiun[]>([])
 const parameterList = ref<Parameter[]>([])
@@ -294,7 +295,6 @@ function isAutoCalculatedImbibisiPersenTebu(parameter: Parameter): boolean {
 function isAutoCalculatedParameter(parameter: Parameter): boolean {
   return isAutoCalculatedHk(parameter)
     || isAutoCalculatedNpp(parameter)
-    || isAutoCalculatedKapGilingan(parameter)
     || isAutoCalculatedNmPersenTebu(parameter)
     || isAutoCalculatedImbibisiPersenTebu(parameter)
 }
@@ -445,12 +445,14 @@ function recalculateAutoCalculatedFields() {
   }
 }
 
-async function syncAutoCalculatedKapGilinganByJam() {
+async function syncAutoCalculatedKapGilinganByJam(force = false) {
   const kapParameter = parameterList.value.find((parameter) => isKapGilinganParameter(parameter.nama_parameter))
   if (!kapParameter) return
 
   const kapTarget = form.parameters.find((item) => item.parameter_id === kapParameter.id)
   if (!kapTarget) return
+
+  if (kapGilinganManualOverride.value && !force) return
 
   if (!form.jam || !isJam24Valid.value) {
     kapTarget.nilai_aktual = ''
@@ -464,10 +466,12 @@ async function syncAutoCalculatedKapGilinganByJam() {
 
     const berat = Number(data?.data?.berat)
     kapTarget.nilai_aktual = Number.isFinite(berat) ? formatAutoCalculatedValue(berat) : ''
+    kapGilinganManualOverride.value = false
     syncAutoCalculatedNmPersenTebu(kapParameter.id)
     syncAutoCalculatedImbibisiPersenTebu(kapParameter.id)
   } catch {
     kapTarget.nilai_aktual = ''
+    kapGilinganManualOverride.value = false
     syncAutoCalculatedNmPersenTebu(kapParameter.id)
     syncAutoCalculatedImbibisiPersenTebu(kapParameter.id)
   }
@@ -481,6 +485,10 @@ function setNilai(parameterId: number, value: string) {
   const target = form.parameters.find((item) => item.parameter_id === parameterId)
   if (target) {
     target.nilai_aktual = value
+    const parameter = parameterList.value.find((item) => item.id === parameterId)
+    if (parameter && isKapGilinganParameter(parameter.nama_parameter)) {
+      kapGilinganManualOverride.value = true
+    }
     syncAutoCalculatedHk(parameterId)
     syncAutoCalculatedNpp(parameterId)
     syncAutoCalculatedNmPersenTebu(parameterId)
@@ -607,6 +615,7 @@ function resetFormParameterValues() {
     nilai_aktual: '',
   }))
 
+  kapGilinganManualOverride.value = false
   void syncAutoCalculatedKapGilinganByJam()
 }
 
@@ -673,6 +682,7 @@ watch(
   async (stasiunId) => {
     editingHeaderId.value = null
     editingDetailByParameterId.value = {}
+    kapGilinganManualOverride.value = false
     parameterList.value = []
     form.parameters = []
 
@@ -689,6 +699,7 @@ watch(
 watch(
   () => form.jam,
   async () => {
+    kapGilinganManualOverride.value = false
     await syncAutoCalculatedKapGilinganByJam()
   }
 )
@@ -707,10 +718,6 @@ async function submitForm() {
   }
 
   recalculateAutoCalculatedFields()
-  await syncAutoCalculatedKapGilinganByJam()
-
-  const kapGilinganParameterId = getKapGilinganParameterId()
-  const skipKapGilinganOnSubmit = kapGilinganParameterId !== null && isRunningGilingHour()
 
   if (!form.petugas.trim() || !form.tanggal || !form.jam || !form.shift) {
     toast.error('Lengkapi data header (tanggal, jam, shift, petugas) sebelum menyimpan.')
@@ -732,7 +739,6 @@ async function submitForm() {
     const filledParameters = form.parameters
       .filter((item) => {
         if (item.nilai_aktual === '') return false
-        if (skipKapGilinganOnSubmit && item.parameter_id === kapGilinganParameterId) return false
         return true
       })
       .map((item) => ({
@@ -741,9 +747,7 @@ async function submitForm() {
       }))
 
     if (filledParameters.length === 0) {
-      toast.error(skipKapGilinganOnSubmit
-        ? 'Kap. Gilingan tidak disimpan karena jam giling masih berjalan. Isi parameter lain sebelum menyimpan.'
-        : 'Isi minimal satu nilai parameter sebelum menyimpan.')
+      toast.error('Isi minimal satu nilai parameter sebelum menyimpan.')
       return
     }
 
@@ -770,17 +774,6 @@ async function submitForm() {
 
       for (const item of form.parameters) {
         const detailId = editingDetailByParameterId.value[item.parameter_id]
-
-        if (skipKapGilinganOnSubmit && item.parameter_id === kapGilinganParameterId) {
-          if (detailId) {
-            detailUpdates.push(
-              axios.put(`/api/lab-qa/detail/${detailId}`, {
-                nilai_aktual: null,
-              })
-            )
-          }
-          continue
-        }
         
         if (detailId) {
           // Update existing detail
@@ -871,7 +864,6 @@ async function editHistoryEntryById(headerId: number): Promise<boolean> {
       nilai_aktual: detailValueMap.get(parameter.id) ?? '',
     }))
     recalculateAutoCalculatedFields()
-    await syncAutoCalculatedKapGilinganByJam()
 
     window.scrollTo({ top: 0, behavior: 'smooth' })
     return true
