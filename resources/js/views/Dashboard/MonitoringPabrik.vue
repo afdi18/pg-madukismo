@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { ActivityIcon, FlameIcon, RefreshCwIcon, ZapIcon } from 'lucide-vue-next'
+import { ActivityIcon, AlertTriangleIcon, FlameIcon, RefreshCwIcon, ZapIcon } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 
 type WsStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
@@ -11,11 +11,27 @@ const updatedAt = ref(new Date().toLocaleString('id-ID'))
 const wsStatus = ref<WsStatus>('disconnected')
 const wsError = ref('')
 const wsPayload = ref<RealtimePayload | null>(null)
-const wsUrl = import.meta.env.VITE_WS_URL || 'ws://ws.madukismo.co.id:3000'
+
+function resolveWsCandidates(): string[] {
+  const localWsUrl = 'ws://10.10.1.151:3000'
+  const publicWsUrl = 'wss://ws.ksomadubaru.com'
+
+  if (typeof window !== 'undefined' && window.location.hostname === '10.10.1.140') {
+    return [localWsUrl, publicWsUrl]
+  }
+
+  return [publicWsUrl, localWsUrl]
+}
+
+const wsCandidates = resolveWsCandidates()
 let websocket: WebSocket | null = null
 
 const authStore = useAuthStore()
 const canAccessRealtimeMonitoring = computed(() => authStore.can('operasional.view'))
+
+const maintenanceFlagRaw = String(import.meta.env.VITE_MONITORING_PABRIK_MAINTENANCE ?? 'false').toLowerCase()
+const isMaintenanceMode = ['1', 'true', 'yes', 'on'].includes(maintenanceFlagRaw)
+const isMaintenancePopupVisible = ref(isMaintenanceMode)
 
 const boilerOverview = ref([
   { label: 'Steam Drum Pressure', value: '-', unit: 'Kg/cm²', accent: 'green' },
@@ -235,15 +251,13 @@ function disconnectWebSocket() {
   websocket = null
 }
 
-function connectWebSocket(forceReconnect = false) {
-  if (!canAccessRealtimeMonitoring.value) return
-
-  if (websocket && websocket.readyState === WebSocket.OPEN && !forceReconnect) return
-
-  disconnectWebSocket()
-
-  wsStatus.value = 'connecting'
-  wsError.value = ''
+function connectToCandidate(index: number) {
+  const wsUrl = wsCandidates[index]
+  if (!wsUrl) {
+    wsStatus.value = 'error'
+    wsError.value = 'Tidak ada URL WebSocket yang tersedia.'
+    return
+  }
 
   websocket = new WebSocket(wsUrl)
 
@@ -266,15 +280,41 @@ function connectWebSocket(forceReconnect = false) {
   }
 
   websocket.onerror = () => {
+    if (index < wsCandidates.length - 1) {
+      wsError.value = `Gagal menghubungkan ke ${wsUrl}, mencoba server cadangan...`
+      return
+    }
+
     wsStatus.value = 'error'
     wsError.value = 'Gagal menghubungkan ke WebSocket server.'
   }
 
   websocket.onclose = () => {
+    const hasFallback = index < wsCandidates.length - 1
+    const shouldFallback = wsStatus.value !== 'connected' && hasFallback
+
+    if (shouldFallback) {
+      connectToCandidate(index + 1)
+      return
+    }
+
     if (wsStatus.value !== 'error') {
       wsStatus.value = 'disconnected'
     }
   }
+}
+
+function connectWebSocket(forceReconnect = false) {
+  if (!canAccessRealtimeMonitoring.value) return
+
+  if (websocket && websocket.readyState === WebSocket.OPEN && !forceReconnect) return
+
+  disconnectWebSocket()
+
+  wsStatus.value = 'connecting'
+  wsError.value = ''
+
+  connectToCandidate(0)
 }
 
 const wsStatusClass = computed(() => {
@@ -335,6 +375,32 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="flex min-h-screen flex-col gap-2 bg-gray-50 p-2 text-gray-900 dark:bg-gray-950 dark:text-white">
+
+    <div
+      v-if="isMaintenanceMode && isMaintenancePopupVisible"
+      class="pointer-events-none fixed inset-0 z-50 flex items-start justify-center bg-black/40 px-4 pt-24"
+      role="alert"
+      aria-live="assertive"
+    >
+      <div class="pointer-events-auto animate-maintenance-flash rounded-2xl border-2 border-red-300 bg-white p-5 shadow-2xl dark:border-red-500/60 dark:bg-gray-900">
+        <div class="flex items-start gap-3">
+          <AlertTriangleIcon class="mt-0.5 h-6 w-6 text-red-600 dark:text-red-400" />
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-red-600 dark:text-red-400">Notice</p>
+            <h2 class="mt-1 text-lg font-extrabold text-gray-900 dark:text-white">Halaman Sedang Maintenance</h2>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+              Monitoring pabrik sedang dalam perbaikan. Silakan cek kembali beberapa saat lagi.
+            </p>
+            <button
+              @click="isMaintenancePopupVisible = false"
+              class="mt-4 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ── Header bar ────────────────────────────────────────────── -->
     <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-900">
@@ -679,5 +745,22 @@ onBeforeUnmount(() => {
   font-family: 'Digital-7 Mono', 'DS-Digital', 'Consolas', monospace;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
+}
+
+@keyframes maintenanceFlash {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35);
+  }
+
+  50% {
+    opacity: 0.68;
+    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+  }
+}
+
+.animate-maintenance-flash {
+  animation: maintenanceFlash 1s ease-in-out infinite;
 }
 </style>
