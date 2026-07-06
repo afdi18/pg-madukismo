@@ -25,6 +25,14 @@ function resolveWsCandidates(): string[] {
 
 const wsCandidates = resolveWsCandidates()
 let websocket: WebSocket | null = null
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let reconnectAttempts = 0
+let shouldAutoReconnect = true
+
+const RECONNECT_BASE_DELAY_MS = 3000
+const RECONNECT_MAX_DELAY_MS = 30000
+const RECONNECT_BACKOFF_MULTIPLIER = 2
+const RECONNECT_MAX_ATTEMPTS = 0
 
 const authStore = useAuthStore()
 const canAccessRealtimeMonitoring = computed(() => authStore.can('operasional.view'))
@@ -242,6 +250,13 @@ function applyRealtimePayload(payload: RealtimePayload) {
 }
 
 function disconnectWebSocket() {
+  shouldAutoReconnect = false
+
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer)
+    reconnectTimer = null
+  }
+
   if (!websocket) return
   websocket.onopen = null
   websocket.onmessage = null
@@ -249,6 +264,32 @@ function disconnectWebSocket() {
   websocket.onclose = null
   websocket.close()
   websocket = null
+}
+
+function scheduleReconnect() {
+  if (!shouldAutoReconnect) return
+  if (reconnectTimer) return
+
+  const canRetry = RECONNECT_MAX_ATTEMPTS === 0 || reconnectAttempts < RECONNECT_MAX_ATTEMPTS
+  if (!canRetry) {
+    wsStatus.value = 'error'
+    wsError.value = 'Gagal reconnect WebSocket: batas percobaan tercapai.'
+    return
+  }
+
+  reconnectAttempts += 1
+  const reconnectDelayMs = Math.min(
+    RECONNECT_BASE_DELAY_MS * (RECONNECT_BACKOFF_MULTIPLIER ** Math.max(0, reconnectAttempts - 1)),
+    RECONNECT_MAX_DELAY_MS,
+  )
+
+  wsStatus.value = 'connecting'
+  wsError.value = `Koneksi terputus. Mencoba reconnect (${reconnectAttempts}) dalam ${Math.round(reconnectDelayMs / 1000)} detik...`
+
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null
+    connectWebSocket(true)
+  }, reconnectDelayMs)
 }
 
 function connectToCandidate(index: number) {
@@ -264,6 +305,7 @@ function connectToCandidate(index: number) {
   websocket.onopen = () => {
     wsStatus.value = 'connected'
     wsError.value = ''
+    reconnectAttempts = 0
   }
 
   websocket.onmessage = (event) => {
@@ -298,9 +340,8 @@ function connectToCandidate(index: number) {
       return
     }
 
-    if (wsStatus.value !== 'error') {
-      wsStatus.value = 'disconnected'
-    }
+    wsStatus.value = 'disconnected'
+    scheduleReconnect()
   }
 }
 
@@ -310,9 +351,12 @@ function connectWebSocket(forceReconnect = false) {
   if (websocket && websocket.readyState === WebSocket.OPEN && !forceReconnect) return
 
   disconnectWebSocket()
+  shouldAutoReconnect = true
 
   wsStatus.value = 'connecting'
-  wsError.value = ''
+  wsError.value = forceReconnect && reconnectAttempts > 0
+    ? `Mencoba reconnect (${reconnectAttempts})...`
+    : ''
 
   connectToCandidate(0)
 }

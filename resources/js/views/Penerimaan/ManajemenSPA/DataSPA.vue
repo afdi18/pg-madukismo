@@ -19,7 +19,51 @@ const selectedDate = ref(new Date().toISOString().slice(0, 10))
 const timerRef = ref<NodeJS.Timeout | null>(null)
 
 // Card summary
-const summary = ref({ madubaru: 0, sragenTimur: 0, sragenBarat: 0, sragenSelatan: 0 })
+const summary = ref({
+  madubaru1: 0,
+  madubaru2: 0,
+  madubaru3: 0,
+  madubaru4: 0,
+  madubaru5: 0,
+  sragenTimur: 0,
+  sragenBarat: 0,
+  sragenSelatan: 0,
+})
+
+const SUMMARY_KEY_CANDIDATES = ['idpos', 'IDPOS', 'pos', 'POS', 'id_pos', 'pos_id', 'idPos']
+
+function getRowPosId(row: Record<string, any>): number | null {
+  for (const key of SUMMARY_KEY_CANDIDATES) {
+    const value = row?.[key]
+    if (value !== undefined && value !== null && value !== '') {
+      const parsed = Number(value)
+      if (Number.isFinite(parsed)) return parsed
+    }
+  }
+  return null
+}
+
+function buildSummaryFromRows(arr: any[]) {
+  const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 9: 0 }
+
+  for (const row of arr) {
+    const posId = getRowPosId(row)
+    if (posId !== null && counts[posId] !== undefined) {
+      counts[posId] += 1
+    }
+  }
+
+  return {
+    madubaru1: counts[1],
+    madubaru2: counts[2],
+    madubaru3: counts[3],
+    madubaru4: counts[4],
+    madubaru5: counts[5],
+    sragenTimur: counts[6],
+    sragenBarat: counts[7],
+    sragenSelatan: counts[9],
+  }
+}
 
 async function fetchPosList() {
   // Ganti endpoint sesuai backend Anda
@@ -38,17 +82,20 @@ async function loadData(isBackgroundRefresh = false) {
     })
     // Tambahkan field no (nomor urut) pada setiap baris
     const addNo = (arr: any[]) => arr.map((row, idx) => ({ no: idx + 1, ...row }))
+    const mappedRows = addNo(data.rows ?? [])
+    const nextSummary = buildSummaryFromRows(mappedRows)
+
     if (isBackgroundRefresh) {
-      rowsTemp.value = addNo(data.rows)
-      summary.value = data.summary
+      rowsTemp.value = mappedRows
+      summary.value = nextSummary
       isFading.value = true
       setTimeout(() => {
         rows.value = rowsTemp.value
         isFading.value = false
       }, 350)
     } else {
-      rows.value = addNo(data.rows)
-      summary.value = data.summary
+      rows.value = mappedRows
+      summary.value = nextSummary
     }
   } catch (e) {
     console.error(e)
@@ -74,10 +121,26 @@ watch([selectedDate, selectedPos], () => loadData())
 <template>
   <div>
     <!-- Card summary -->
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3 mb-4">
       <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
-        <div class="text-xs text-gray-500 mb-1">Madubaru (ID 1-5)</div>
-        <div class="text-2xl font-bold text-yellow-600">{{ summary.madubaru }}</div>
+        <div class="text-xs text-gray-500 mb-1">Madubaru (ID 1)</div>
+        <div class="text-2xl font-bold text-yellow-600">{{ summary.madubaru1 }}</div>
+      </div>
+      <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
+        <div class="text-xs text-gray-500 mb-1">Madubaru (ID 2)</div>
+        <div class="text-2xl font-bold text-yellow-600">{{ summary.madubaru2 }}</div>
+      </div>
+      <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
+        <div class="text-xs text-gray-500 mb-1">Madubaru (ID 3)</div>
+        <div class="text-2xl font-bold text-yellow-600">{{ summary.madubaru3 }}</div>
+      </div>
+      <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
+        <div class="text-xs text-gray-500 mb-1">Madubaru (ID 4)</div>
+        <div class="text-2xl font-bold text-yellow-600">{{ summary.madubaru4 }}</div>
+      </div>
+      <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
+        <div class="text-xs text-gray-500 mb-1">Madubaru (ID 5)</div>
+        <div class="text-2xl font-bold text-yellow-600">{{ summary.madubaru5 }}</div>
       </div>
       <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
         <div class="text-xs text-gray-500 mb-1">Sragen Timur (ID 6)</div>

@@ -10,8 +10,6 @@ const toast = useToast()
 const loadingConfig = ref(false)
 const submitting = ref(false)
 const hariGiling = ref<number>(1)
-const showHariGilingDropdown = ref(false)
-const latestHariGiling = ref<number>(1)
 const faktorRendemen = ref<number>(0)
 
 const jam = ref<number>(0)
@@ -35,24 +33,13 @@ type PosNppRow = {
 
 const tableRows = ref<PosNppRow[]>([])
 const loadingTable = ref(false)
-const hariGilingDropdownRef = ref<HTMLElement | null>(null)
-const gilingHourOrder = [...Array.from({ length: 18 }, (_, index) => index + 6), ...Array.from({ length: 6 }, (_, index) => index)]
 
 const hariGilingOptions = computed(() => {
-    const maxDay = Math.max(1, Number(latestHariGiling.value || 1))
-    return Array.from({ length: maxDay }, (_, index) => maxDay - index)
+    const maxDay = Math.max(1, Number(hariGiling.value || 1))
+    return Array.from({ length: maxDay }, (_, index) => index + 1)
 })
-const jamOptions = computed(() => {
-    const isTodayGiling = Number(hariGiling.value) === Number(latestHariGiling.value)
-    if (!isTodayGiling) return gilingHourOrder
-
-    const currentHourIndex = gilingHourOrder.indexOf(currentHour.value)
-    if (currentHourIndex === -1) return gilingHourOrder
-
-    return gilingHourOrder.slice(0, currentHourIndex + 1)
-})
+const jamOptions = computed(() => Array.from({ length: currentHour.value + 1 }, (_, index) => index))
 const menitOptions = [0, 30]
-const selectedHariGilingLabel = computed(() => String(hariGiling.value || 1).padStart(3, '0'))
 
 const nilaiNira = computed(() => {
     const brixValue = Number(brix.value ?? 0)
@@ -72,23 +59,6 @@ const rend = computed(() => nilaiNira.value * Number(faktorRendemen.value ?? 0))
 
 const canSubmit = computed(() => authStore.can('lab_qa.pos_npp'))
 
-function toggleHariGilingDropdown() {
-    showHariGilingDropdown.value = !showHariGilingDropdown.value
-}
-
-function selectHariGiling(day: number) {
-    hariGiling.value = day
-    showHariGilingDropdown.value = false
-}
-
-function closeHariGilingDropdownOnOutsideClick(event: MouseEvent) {
-    if (!showHariGilingDropdown.value) return
-    const root = hariGilingDropdownRef.value
-    if (root && event.target instanceof Node && !root.contains(event.target)) {
-        showHariGilingDropdown.value = false
-    }
-}
-
 function setCurrentTimeDefaults() {
     const now = new Date()
     const hourNow = now.getHours()
@@ -102,8 +72,8 @@ function setCurrentTimeDefaults() {
 function refreshCurrentHourLimit() {
     currentHour.value = new Date().getHours()
 
-    if (!jamOptions.value.includes(jam.value)) {
-        jam.value = jamOptions.value[jamOptions.value.length - 1] ?? gilingHourOrder[0]
+    if (jam.value > currentHour.value) {
+        jam.value = currentHour.value
     }
 }
 
@@ -141,8 +111,7 @@ async function fetchConfig() {
     loadingConfig.value = true
     try {
         const { data } = await axios.get('/api/lab-qa/pos-npp/config')
-        latestHariGiling.value = Number(data?.data?.hari_giling ?? 1)
-        hariGiling.value = latestHariGiling.value
+        hariGiling.value = Number(data?.data?.hari_giling ?? 1)
         faktorRendemen.value = Number(data?.data?.fkr ?? 0)
         await fetchTable()
     } catch (error: any) {
@@ -192,7 +161,6 @@ watch([hariGiling, jam, menit], () => {
 })
 
 onMounted(() => {
-    document.addEventListener('click', closeHariGilingDropdownOnOutsideClick)
     setCurrentTimeDefaults()
     refreshCurrentHourLimit()
     currentTimeInterval = setInterval(() => {
@@ -202,7 +170,6 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-    document.removeEventListener('click', closeHariGilingDropdownOnOutsideClick)
     if (currentTimeInterval) {
         clearInterval(currentTimeInterval)
         currentTimeInterval = null
@@ -222,27 +189,12 @@ onBeforeUnmount(() => {
                 <div class="space-y-3 lg:col-span-4">
                     <label class="flex flex-col gap-1 text-sm">
                         <span class="font-medium text-gray-700 dark:text-gray-200">Hari Giling</span>
-                        <div ref="hariGilingDropdownRef" class="relative">
-                            <button type="button" @click="toggleHariGilingDropdown"
-                                class="flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                                <span>{{ selectedHariGilingLabel }}</span>
-                                <span class="text-xs text-gray-500">▼</span>
-                            </button>
-
-                            <div v-if="showHariGilingDropdown"
-                                class="absolute z-20 mt-1 w-full rounded-lg border border-gray-300 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                                <div class="max-h-72 overflow-y-auto py-1">
-                                    <button v-for="day in hariGilingOptions" :key="`hari-${day}`" type="button"
-                                        @click="selectHariGiling(day)"
-                                        :class="day === hariGiling
-                                            ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100'
-                                            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'"
-                                        class="block w-full px-3 py-2 text-left text-sm">
-                                        {{ String(day).padStart(3, '0') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <select v-model.number="hariGiling"
+                            class="h-10 rounded-lg border border-gray-300 bg-white px-3 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                            <option v-for="day in hariGilingOptions" :key="`hari-${day}`" :value="day">
+                                {{ String(day).padStart(3, '0') }}
+                            </option>
+                        </select>
                     </label>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
