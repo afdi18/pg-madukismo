@@ -536,11 +536,11 @@ async function copyCoords(p: any) {
   <div class="absolute inset-0 bg-black/50" @click="closePosModal"></div>
   <div class="relative max-w-3xl w-full mx-4 bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden">
     <div class="p-4 border-b dark:border-gray-800 flex items-center justify-between">
-      <h3 class="text-lg font-semibold">Daftar POS Pantau</h3>
+      <h3 class="text-lg font-semibold text-white">Daftar POS Pantau</h3>
       <div class="flex items-center gap-2">
         <input v-model="posFilter" placeholder="Cari POS..." class="px-2 py-1 text-sm border rounded" />
         <button @click="openCreatePos" class="px-3 py-1 bg-emerald-600 text-white rounded text-sm">Tambah POS</button>
-        <button @click="closePosModal" class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded">Tutup</button>
+        <button @click="closePosModal" class="px-3 py-1 bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400 rounded">Tutup</button>
       </div>
     </div>
     <div class="p-4">
@@ -554,7 +554,7 @@ async function copyCoords(p: any) {
           <div class="flex items-center gap-2">
             <button @click.prevent="openEditPos(p)" class="px-3 py-1 bg-amber-500 text-white rounded text-sm">Edit</button>
             <!-- <button @click.prevent="centerOnPos(p)" class="px-3 py-1 bg-sky-600 text-white rounded text-sm">Pusat</button> -->
-            <button @click.prevent="copyCoords(p)" class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm">Salin</button>
+            <button @click.prevent="copyCoords(p)" class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm text-gray-700 dark:text-gray-400">Salin</button>
           </div>
         </div>
       </div>
@@ -566,27 +566,27 @@ async function copyCoords(p: any) {
   <ModalCard v-model="showPosFormModal" sizeClass="max-w-lg">
     <template #header>
       <div class="p-6 border-b dark:border-gray-800">
-        <h3 class="text-xl font-semibold">{{ posFormMode === 'create' ? 'Tambah POS Pantau' : 'Edit POS Pantau' }}</h3>
+        <h3 class="text-xl font-semibold text-white">{{ posFormMode === 'create' ? 'Tambah POS Pantau' : 'Edit POS Pantau' }}</h3>
         <p class="text-sm text-gray-500 mt-1">Isi nama POS dan koordinat lokasi.</p>
       </div>
     </template>
 
     <div class="p-6 space-y-4">
       <div>
-        <label class="text-sm text-gray-600">Nama POS</label>
-        <input v-model="posForm.NMPOS" type="text" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800" />
+        <label class="text-sm text-gray-600 dark:text-gray-400">Nama POS</label>
+        <input v-model="posForm.NMPOS" type="text" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400" />
         <div v-if="posFormErrors.NMPOS" class="text-xs text-red-500 mt-1">{{ posFormErrors.NMPOS }}</div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label class="text-sm text-gray-600">Latitude</label>
-          <input v-model="posForm.LAT" type="number" step="any" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800" />
+          <label class="text-sm text-gray-600 dark:text-gray-400">Latitude</label>
+          <input v-model="posForm.LAT" type="number" step="any" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400" />
           <div v-if="posFormErrors.LAT" class="text-xs text-red-500 mt-1">{{ posFormErrors.LAT }}</div>
         </div>
         <div>
-          <label class="text-sm text-gray-600">Longitude</label>
-          <input v-model="posForm.LONG" type="number" step="any" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800" />
+          <label class="text-sm text-gray-600 dark:text-gray-400">Longitude</label>
+          <input v-model="posForm.LONG" type="number" step="any" class="w-full mt-2 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400" />
           <div v-if="posFormErrors.LONG" class="text-xs text-red-500 mt-1">{{ posFormErrors.LONG }}</div>
         </div>
       </div>
@@ -594,7 +594,7 @@ async function copyCoords(p: any) {
 
     <template #footer>
       <div class="p-6 border-t dark:border-gray-800 flex justify-end gap-3">
-        <button @click="closePosFormModal" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm bg-white dark:bg-gray-800">Batal</button>
+        <button @click="closePosFormModal" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-400">Batal</button>
         <button @click="savePosForm" :disabled="posFormSaving" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm disabled:opacity-50">
           {{ posFormSaving ? 'Menyimpan...' : (posFormMode === 'create' ? 'Tambah POS' : 'Simpan Perubahan') }}
         </button>
