@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { SearchIcon } from 'lucide-vue-next'
@@ -71,6 +71,18 @@ async function fetchPosList() {
   posList.value = data?.data ?? []
 }
 
+const posNameById = computed(() => {
+  const map: Record<number, string> = {}
+  for (const pos of posList.value) {
+    map[Number(pos.idpos)] = pos.nmpos
+  }
+  return map
+})
+
+function getPosName(id: number, fallback: string) {
+  return posNameById.value[id] ?? fallback
+}
+
 async function loadData(isBackgroundRefresh = false) {
   if (!isBackgroundRefresh) loading.value = true
   try {
@@ -123,35 +135,35 @@ watch([selectedDate, selectedPos], () => loadData())
     <!-- Card summary -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3 mb-4">
       <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
-        <div class="text-xs text-gray-500 mb-1">Madubaru (ID 1)</div>
+        <div class="text-xs text-gray-500 mb-1">{{ getPosName(1, 'Madubaru') }} (ID 1)</div>
         <div class="text-2xl font-bold text-yellow-600">{{ summary.madubaru1 }}</div>
       </div>
       <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
-        <div class="text-xs text-gray-500 mb-1">Madubaru (ID 2)</div>
+        <div class="text-xs text-gray-500 mb-1">{{ getPosName(2, 'Madubaru') }} (ID 2)</div>
         <div class="text-2xl font-bold text-yellow-600">{{ summary.madubaru2 }}</div>
       </div>
       <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
-        <div class="text-xs text-gray-500 mb-1">Madubaru (ID 3)</div>
+        <div class="text-xs text-gray-500 mb-1">{{ getPosName(3, 'Madubaru') }} (ID 3)</div>
         <div class="text-2xl font-bold text-yellow-600">{{ summary.madubaru3 }}</div>
       </div>
       <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
-        <div class="text-xs text-gray-500 mb-1">Madubaru (ID 4)</div>
+        <div class="text-xs text-gray-500 mb-1">{{ getPosName(4, 'Madubaru') }} (ID 4)</div>
         <div class="text-2xl font-bold text-yellow-600">{{ summary.madubaru4 }}</div>
       </div>
       <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
-        <div class="text-xs text-gray-500 mb-1">Madubaru (ID 5)</div>
+        <div class="text-xs text-gray-500 mb-1">{{ getPosName(5, 'Madubaru') }} (ID 5)</div>
         <div class="text-2xl font-bold text-yellow-600">{{ summary.madubaru5 }}</div>
       </div>
       <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
-        <div class="text-xs text-gray-500 mb-1">Sragen Timur (ID 6)</div>
+        <div class="text-xs text-gray-500 mb-1">{{ getPosName(6, 'Sragen Timur') }} (ID 6)</div>
         <div class="text-2xl font-bold text-blue-600">{{ summary.sragenTimur }}</div>
       </div>
       <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
-        <div class="text-xs text-gray-500 mb-1">Sragen Barat (ID 7)</div>
+        <div class="text-xs text-gray-500 mb-1">{{ getPosName(7, 'Sragen Barat') }} (ID 7)</div>
         <div class="text-2xl font-bold text-green-600">{{ summary.sragenBarat }}</div>
       </div>
       <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center shadow">
-        <div class="text-xs text-gray-500 mb-1">Sragen Selatan (ID 9)</div>
+        <div class="text-xs text-gray-500 mb-1">{{ getPosName(9, 'Sragen Selatan') }} (ID 9)</div>
         <div class="text-2xl font-bold text-red-600">{{ summary.sragenSelatan }}</div>
       </div>
     </div>
