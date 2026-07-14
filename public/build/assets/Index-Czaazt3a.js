@@ -1,0 +1,1 @@
+import{Ct as e,Dt as t,ft as n,lt as r,pt as i}from"./vendor-Dz4QZAda.js";var a={class:`space-y-4`},o=i({__name:`Index`,setup(i){return(i,o)=>{let s=t(`router-view`);return e(),r(`div`,a,[n(s)])}}});export{o as default};

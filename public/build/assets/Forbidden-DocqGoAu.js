@@ -1,0 +1,1 @@
+import{Ct as e,lt as t}from"./vendor-Dz4QZAda.js";import{t as n}from"./_plugin-vue_export-helper-BOai-rQB.js";var r={},i={class:`p-4`};function a(n,r){return e(),t(`div`,i,`Forbidden`)}var o=n(r,[[`render`,a]]);export{o as default};

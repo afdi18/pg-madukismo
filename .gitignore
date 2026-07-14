@@ -15,7 +15,7 @@ pnpm-debug.log*
 /.env.*.local
 
 # Ignore build outputs (Vite, Mix)
-/public/build/
+#/public/build/
 /build/
 public/mix-manifest.json
 /.vite
