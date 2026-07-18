@@ -13,6 +13,10 @@ pnpm-debug.log*
 /storage/*.key
 /.env
 /.env.*.local
+/.env.stack.example
+/public--.zip
+/public.zip
+/public3.zip
 
 # Ignore build outputs (Vite, Mix)
 #/public/build/
