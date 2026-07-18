@@ -68,7 +68,7 @@ WORKDIR /var/www/html
 
 COPY package.json package-lock.json ./
 
-RUN npm ci
+RUN npm ci --no-audit --no-fund --legacy-peer-deps
 
 COPY .env.example .env
 COPY resources ./resources
