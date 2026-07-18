@@ -233,7 +233,7 @@ onBeforeUnmount(() => {
                             <div v-if="showHariGilingDropdown"
                                 class="absolute z-20 mt-1 w-full rounded-lg border border-gray-300 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
                                 <div class="max-h-72 overflow-y-auto py-1">
-                                    <button v-for="day in hariGilingOptions" :key="`hari-${day}`" type="button"
+                                    <button v-for="day in hariGilingOptions.sort((a, b) => b - a)" :key="`hari-${day}`" type="button"
                                         @click="selectHariGiling(day)"
                                         :class="day === hariGiling
                                             ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100'

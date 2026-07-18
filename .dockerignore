@@ -2,6 +2,7 @@
 .gitignore
 .env
 .env.*
+!.env.example
 node_modules
 vendor
 storage/logs
@@ -12,3 +13,4 @@ public/build
 npm-debug.log
 Dockerfile
 docker-compose*.yml
+
