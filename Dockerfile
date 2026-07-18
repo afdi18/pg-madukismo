@@ -92,4 +92,4 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
 
 EXPOSE 8000
 
-CMD ["sh", "-lc", "php artisan serve --host=0.0.0.0 --port=8000"]
+CMD ["sh", "-lc", "if [ -z \"$APP_KEY\" ]; then echo 'ERROR: APP_KEY is empty. Set APP_KEY in stack environment.'; exit 1; fi; php artisan optimize:clear >/dev/null 2>&1 || true; php artisan serve --host=0.0.0.0 --port=8000"]
