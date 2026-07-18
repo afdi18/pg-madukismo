@@ -24,9 +24,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         unixodbc-dev \
         unzip \
         zip \
+    && ARCH="$(dpkg --print-architecture)" \
     && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
         | gpg --dearmor -o /usr/share/keyrings/microsoft.gpg \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" \
+    && echo "deb [arch=${ARCH} signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" \
         > /etc/apt/sources.list.d/microsoft-prod.list \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 \
@@ -40,7 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         pgsql \
         xml \
         zip \
-    && pecl install sqlsrv pdo_sqlsrv \
+    && pecl install sqlsrv-5.12.0 pdo_sqlsrv-5.12.0 \
     && docker-php-ext-enable sqlsrv pdo_sqlsrv \
     && rm -rf /var/lib/apt/lists/* /tmp/pear
 
