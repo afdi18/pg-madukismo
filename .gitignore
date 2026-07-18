@@ -12,8 +12,9 @@ pnpm-debug.log*
 /public/storage
 /storage/*.key
 /.env
-/.env.*.local
-/.env.stack.example
+/.env.*
+!/.env.example
+!/.env.stack.example
 /public--.zip
 /public.zip
 /public3.zip
