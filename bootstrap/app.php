@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\URL;
 use App\Http\Middleware\AbacMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -31,6 +32,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
+
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Handle 401 Unauthenticated → JSON response untuk API
@@ -51,5 +54,8 @@ return Application::configure(basePath: dirname(__DIR__))
                     'code'    => 'NOT_FOUND',
                 ], 404);
             }
-        });
+        });    
+    })
+    ->booting(function () {
+        URL::forceScheme('https');
     })->create();
