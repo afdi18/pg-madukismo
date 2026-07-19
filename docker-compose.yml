@@ -12,7 +12,7 @@ services:
       APP_NAME: ${APP_NAME:-Dashboard Monitoring PG Madukismo}
       APP_ENV: ${APP_ENV:-production}
       APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: ${APP_URL:-http://localhost:8000}
+      APP_URL: ${APP_URL:-https://ksomadubaru.com}
       APP_KEY: ${APP_KEY}
       LOG_CHANNEL: ${LOG_CHANNEL:-stack}
       LOG_LEVEL: ${LOG_LEVEL:-info}
@@ -35,7 +35,7 @@ services:
       DB_SQLSRV_ENCRYPT: ${DB_SQLSRV_ENCRYPT:-yes}
       DB_SQLSRV_TRUST_CERT: ${DB_SQLSRV_TRUST_CERT:-false}
 
-      VITE_APP_URL: ${VITE_APP_URL:-http://localhost:8000}
+      VITE_APP_URL: ${VITE_APP_URL:-https://ksomadubaru.com}
       VITE_DEV_SERVER_URL: ${VITE_DEV_SERVER_URL:-}
     networks:
       macvlan-net:
