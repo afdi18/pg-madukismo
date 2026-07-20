@@ -3,12 +3,12 @@
 use Illuminate\Support\Facades\Route;
 
 /*
-|--------------------------------------------------------------------------
-| Web Routes — SPA Entry Point
-| Semua route dilayani oleh Vue Router, Laravel hanya serve app.blade.php
-|--------------------------------------------------------------------------
+|-|--------------------------------------------------------------------------
+|-| Web Routes — Redirect Notice
+|-| Menampilkan halaman informasi bahwa aplikasi sudah dipindah ke production.
+|-|--------------------------------------------------------------------------
 */
 
 Route::get('/{any}', function () {
-    return view('app');
+    return view('redirect-notice');
 })->where('any', '^(?!api(?:/|$)).*');
